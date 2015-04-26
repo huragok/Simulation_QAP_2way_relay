@@ -17,3 +17,15 @@ function xpcd_num_PE_bits = get_xpcd_num_PE_bits(c, map)
 % Date: 04/24/2015
 % Codename: Dunkirk
 % _________________________________________________________________________
+
+Q = length(map);
+xpcd_num_PE_bits = zeros(Q, Q);
+
+for p = 1 : Q
+    for q = 1 : Q
+        if p ~= q
+            piqk = [p, map(p), q, map(q)];
+            xpcd_num_PE_bits(p, q) = c(piqk2idx(piqk));
+        end
+    end
+end

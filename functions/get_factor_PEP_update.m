@@ -26,3 +26,6 @@ function E = get_factor_PEP_update(dist_sqr, beta_sr, beta_rd, g, sigma_sqr_d, s
 % Date: 04/24/2015
 % Codename: Dunkirk
 % _________________________________________________________________________
+
+E = 1
+
