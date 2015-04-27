@@ -5,7 +5,7 @@ function E = get_factor_PEP_update(dist_sqr, beta_sr, beta_rd, g, sigma_sqr_d, s
 %   retransmissions
 % _________________________________________________________________________
 %	Inputs:
-% 		dist_sqr:       Scalar, the square norm of the 2 comstellation 
+% 		dist_sqr:       Vector, the square norm of the 2 comstellation 
 %                       points to which p and q are mapped in the M-th
 %                       retransmission
 %       beta_sr:        Scalart, the variance of the Rayleigh channel from
@@ -27,5 +27,7 @@ function E = get_factor_PEP_update(dist_sqr, beta_sr, beta_rd, g, sigma_sqr_d, s
 % Codename: Dunkirk
 % _________________________________________________________________________
 
-E = 1
+tmp_1 = 4 * sigma_sqr_r + beta_sr * dist_sqr;
+tmp_2 = 4 * sigma_sqr_d ./ (g ^ 2 * beta_rd * tmp_1);
+E = 4 * sigma_sqr_r ./ tmp_1 + beta_sr * dist_sqr .* tmp_2 ./tmp_1 .* exp(tmp_2) .* expint(tmp_2); % Note the difference between the exponential integral function definition in the reference and Matlab
 
