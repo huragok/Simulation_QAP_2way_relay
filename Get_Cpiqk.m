@@ -18,13 +18,16 @@ pwr = 1;
 %   all the 3 node S, R, D's AWGN noise have the same power sigma2
 % We assume that the S and D are separated by distance 1. The variance of
 % the relay channel is d ^ -nu where nu is the pathloss factor
+% We also assume that the channel and noise are stationary across
+% transmissions
+
 dB_inv_sigma2 = 10; % 1/sigma2 in dB
 Pr = 2; % Power at the relay
 d1 = 0.5; % Distance between S and R
 d2 = 0.5; % Distance between R and D
 nu = 3; % Pathloss factor
 
-
+M = 5; % Number of retransmission
 %% 2. Initialization
 Q = 2 ^ Nbps;
 constellation = get_constellation(Nbps, type_mod, pwr);
@@ -47,8 +50,8 @@ g = sqrt(Pr / (beta_sr + beta_rd + sigma_sqr_r)); % The power normalization fact
 fileID = fopen('test.data', 'r');
 c_last = fscanf(fileID, '%f');
 fclose(fileID);
+xpcd_num_PE_bits = get_xpcd_num_PE_bits(c_last, map); % Update
 map = 1 : Q; % Gray mapping
-xpcd_num_PE_bits = get_xpcd_num_PE_bits(c_last, map); % Update 
 
 sum(sum(xpcd_num_PE_bits))
 
