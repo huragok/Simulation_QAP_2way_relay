@@ -18,7 +18,7 @@ pwr = 1;
 %   all the 3 node S, R, D's AWGN noise have the same power sigma2
 % We assume that the S and D are separated by distance 1. The variance of
 % the relay channel is d ^ -nu where nu is the pathloss factor
-dB_inv_sigma2 = 0; % 1/sigma2 in dB
+dB_inv_sigma2 = 10; % 1/sigma2 in dB
 Pr = 2; % Power at the relay
 d1 = 0.5; % Distance between S and R
 d2 = 0.5; % Distance between R and D
@@ -42,25 +42,21 @@ g = sqrt(Pr / (beta_sr + beta_rd + sigma_sqr_r)); % The power normalization fact
 % matrix for the previous transmissions, or initialize this value to be 1 /
 % 2 of the hamming distance matrix
 
-xpcd_num_PE_bits = get_hamming_dist(Nbps) / 2; % Initialization
+% xpcd_num_PE_bits = get_hamming_dist(Nbps) / 2 / Q; % Initialization
 
-%c_last = fscanf('test_last.data', '%f');
-%map = 1 : Q; % Gray mapping
-%xpcd_num_PE_bits = get_xpcd_num_PE_bits(c, map); % Update 
+fileID = fopen('test.data', 'r');
+c_last = fscanf(fileID, '%f');
+fclose(fileID);
+map = 1 : Q; % Gray mapping
+xpcd_num_PE_bits = get_xpcd_num_PE_bits(c_last, map); % Update 
+
+sum(sum(xpcd_num_PE_bits))
 
 % Compute the distances betweem each pair of constellation points
 dist_sqr = abs(repmat(constellation, 1, Q) - repmat(constellation.', Q, 1)) .^ 2;
 dist_sqr = reshape(dist_sqr, Q ^ 2, 1);
-
-E = zeros(Q ^ 2, 1); % The variable to store all Eik
-% Main bottleneck, use par for to speed up
-for idx_ik = 1 : Q ^ 2
-    k = mod(idx_ik - 1, Q) + 1;
-    i = floor((idx_ik - 1) / Q) + 1;
-    if i ~= k
-        E(idx_ik) = get_factor_PEP_update(dist_sqr(idx_ik), beta_sr, beta_rd, g, sigma_sqr_d, sigma_sqr_r);
-    end
-end
+E = get_factor_PEP_update(dist_sqr, beta_sr, beta_rd, g, sigma_sqr_d, sigma_sqr_r); % Get this thing fully vectorized
+mean(E)
 
 % Compute and save c
 c = zeros(1, Q ^ 4);
