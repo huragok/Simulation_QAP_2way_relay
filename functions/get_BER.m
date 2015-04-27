@@ -41,6 +41,5 @@ for m = 1 : M
     
     d = d + abs(repmat(y, Q, 1) - g * symbols_mapped(m, :).' * (h_rd .* h_sr)) .^ 2 ./ repmat(sigma_sqr_d + g ^ 2 * sigma_sqr_r * abs(h_rd) .^ 2, Q, 1); % Compute the ML measurement: the weighted distance square between the received signal and the Q symbols for each of N realization
     [~, p_demod] = min(d, [], 1);
-    idx_B = (p_demod - 1) * Q + p; % The 1-d vector index for B corresponding to the 2d index (p, p_demod)
-    BER(m) = mean(B(idx_B)) / Nbps; % BER for the m-th transmission
+    BER(m) = mean(B((p_demod - 1) * Q + p)) / Nbps; % BER for the m-th transmission
 end

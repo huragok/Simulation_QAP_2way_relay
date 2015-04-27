@@ -65,7 +65,7 @@ mean(E)
 c = zeros(1, Q ^ 4);
 for idx = 1 : Q ^ 4
     piqk = idx2piqk(idx, Q);
-    c(idx) = E((piqk(2) - 1) * Q + piqk(4)) * xpcd_num_PE_bits(piqk(1), piqk(3));
+    c(idx) = E((piqk(2) - 1) * Q + piqk(4)) * xpcd_num_PE_bits(piqk(1), piqk(3)) / Nbps;
 end
 
 fileID = fopen('test.data', 'w+');

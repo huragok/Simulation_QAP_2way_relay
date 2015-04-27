@@ -32,6 +32,6 @@ for m = 1 : M
     dist_sqr = abs(repmat(constellation(map(m, :)), 1, Q) - repmat(constellation(map(m, :)).', Q, 1)) .^ 2; % A Q-by-Q matrix containing the distance square mesurements
     E = get_factor_PEP_update(dist_sqr, beta_sr, beta_rd, g, sigma_sqr_d, sigma_sqr_r); % Get this thing fully vectorized
     xpcd_num_PE_bits = xpcd_num_PE_bits .* E; % Update the expected number of pairwise error beat
-    BER(m) = sum(sum(xpcd_num_PE_bits));
+    BER(m) = sum(sum(xpcd_num_PE_bits)) / Nbps;
 end
 
