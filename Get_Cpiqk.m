@@ -10,7 +10,6 @@ addpath('./functions');
 % Constellation specification
 Nbps = 4;
 type_mod = 'QAM';
-pwr = 1; 
 
 % Node S, R, D power, channel power and noise power specification
 % For now we assume that:
@@ -21,60 +20,65 @@ pwr = 1;
 % We also assume that the channel and noise are stationary across
 % transmissions
 
-dB_inv_sigma2 = 20; % 1/sigma2 in dB
+dB_inv_sigma2 = 16 : 2 : 22; % 1/sigma2 in dB
 Pr = 2; % Power at the relay
-d1 = 0.5; % Distance between S and R
-d2 = 0.5; % Distance between R and D
+d = [0.5, 0.5]; % Distance between S and R, R and D
+
 nu = 3; % Pathloss factor
-
-M = 5; % Number of retransmission
-%% 2. Initialization
-Q = 2 ^ Nbps;
-constellation = get_constellation(Nbps, type_mod, pwr);
-
-sigma_sqr = 10 ^ (-dB_inv_sigma2 / 10); % The noise covariance at all nodes
-sigma_sqr_d = sigma_sqr;
-sigma_sqr_r = sigma_sqr;
-
-beta_sr = d1 ^ -nu;
-beta_rd = d2 ^ -nu;
-
-g = sqrt(Pr / (beta_sr + beta_rd + sigma_sqr_r)); % The power normalization factor
-
-% Compute the distances betweem each pair of constellation points. We
-% assume that the simulation settings are stationary across transmissions
-dist_sqr = abs(repmat(constellation, 1, Q) - repmat(constellation.', Q, 1)) .^ 2;
-E = get_factor_PEP_update(dist_sqr, beta_sr, beta_rd, g, sigma_sqr_d, sigma_sqr_r); % Get this thing fully vectorized
-%mean(E)
+M = 4; % Number of retransmission
+%% 2. Initialization: generate and save all test cases
+test_cases = construct_test_cases(Nbps, type_mod, dB_inv_sigma2, Pr, d, nu, M, true);
+n_case = length(test_cases);
+time_step = regexprep(num2str(clock),'[^\w'']',''); % The time step used to label all saved files as a suffix
 
 %% 3. Start the computation
 % Compute the expected number of pairwise error bit based on the cost 
 % matrix for the previous transmissions, or initialize this value to be 1 /
 % 2 of the hamming distance matrix
 
-xpcd_PBER = get_hamming_dist(Nbps) / 2 / Q / Nbps; % Initialize the expected pairwise BER before any transmission
-xpcd_PBER = xpcd_PBER .* get_factor_PEP_update(dist_sqr, beta_sr, beta_rd, g, sigma_sqr_d, sigma_sqr_r); % The expected pairwise BER after the first transmission (Gray mapping)
-disp(['Transmission 1: BER = ', num2str(sum(sum(xpcd_PBER)))]);
+for i_case = 1 : n_case
+    disp(['Test case ', num2str(i_case), '/', num2str(n_case)]);
+    
+    % unpack the parameters
+    
+    xpcd_PBER = get_hamming_dist(test_cases(i_case).param_origin.Nbps) / 2 / test_cases(i_case).param_derived.Q / test_cases(i_case).param_origin.Nbps; % Initialize the expected pairwise BER before any transmission
+    xpcd_PBER = xpcd_PBER .* test_cases(i_case).param_derived.E; % The expected pairwise BER after the first transmission (Gray mapping)
+    disp([' - Transmission 1: BER = ', num2str(sum(sum(xpcd_PBER)))]);
+    
+    test_cases(i_case).map = zeros(test_cases(i_case).param_origin.M - 1, test_cases(i_case).param_derived.Q);
+    for m = 2 : test_cases(i_case).param_origin.M
+        % tic;
+        % Compute and save the cost matrix for the m-th retransmission
+        c = zeros(1, test_cases(i_case).param_derived.Q ^ 4);
+        for idx = 1 : test_cases(i_case).param_derived.Q ^ 4
+            piqk = idx2piqk(idx, test_cases(i_case).param_derived.Q);
+            c(idx) = test_cases(i_case).param_derived.E(piqk(2), piqk(4)) * xpcd_PBER(piqk(1), piqk(3));
+        end
+        
+        % Write each cost matrix to a file
+        filename = ['test_case', num2str(i_case), '_', num2str(m) , '_', time_step, '.data'];
+        fileID = fopen(filename, 'w+');
+        fprintf(fileID, '  %18.16e', c);
+        fclose(fileID);
 
-for m = 2 : M
-    tic;
-    % Compute and save the cost matrix for the m-th retransmission
-    c = zeros(1, Q ^ 4);
-    for idx = 1 : Q ^ 4
-        piqk = idx2piqk(idx, Q);
-        c(idx) = E(piqk(2), piqk(4)) * xpcd_PBER(piqk(1), piqk(3));
+        % Put the QAP solver here, currently we use a place holder which
+        % returns gray mapping only. Save the resulting map also to the
+        % structure
+        map = solve_QAP(c);
+        test_cases(i_case).map(m - 1, :) = map;
+        
+        % Update the expected PBER
+        xpcd_PBER = get_xpcd_PBER(c, map);
+        % toc;
+        disp([' - Transmission ', num2str(m), ': BER = ', num2str(sum(sum(xpcd_PBER)))]);
     end
-    filename = ['test_case1_', num2str(m), '.data'];
-    fileID = fopen(filename, 'w+');
-    fprintf(fileID, '  %18.16e', c);
-    fclose(fileID);
     
-    % Put the QAP solver here, currently we use a place holder which
-    % returns gray mapping only
-    map = solve_QAP(c);
-    
-    % Update the expected PBER
-    xpcd_PBER = get_xpcd_PBER(c, map);
-    toc;
-    disp(['Transmission ', num2str(m), ': BER = ', num2str(sum(sum(xpcd_PBER)))]);
+    % Save the test results regularly in case of a crash
+    save(['Test_', time_step, '.mat'], 'test_cases');
+    disp(['Test case ', num2str(i_case), '/', num2str(n_case), ' saved.']);
 end
+
+
+
+
+

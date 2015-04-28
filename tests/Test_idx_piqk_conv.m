@@ -4,7 +4,7 @@ clear all;
 close all;
 clc;
 
-addpath('./functions/');
+addpath('../functions/');
 
 Q = 16;
 piqk = [1,13,2,16];

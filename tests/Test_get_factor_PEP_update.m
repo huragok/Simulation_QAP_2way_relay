@@ -6,7 +6,7 @@ clear all;
 close all;
 clc;
 
-addpath('./functions');
+addpath('../functions');
 
 %% 1. Simulation settings
 % Constellation specification
