@@ -21,7 +21,7 @@ pwr = 1;
 % We also assume that the channel and noise are stationary across
 % transmissions
 
-dB_inv_sigma2 = 10; % 1/sigma2 in dB
+dB_inv_sigma2 = 20; % 1/sigma2 in dB
 Pr = 2; % Power at the relay
 d1 = 0.5; % Distance between S and R
 d2 = 0.5; % Distance between R and D
@@ -40,34 +40,41 @@ beta_sr = d1 ^ -nu;
 beta_rd = d2 ^ -nu;
 
 g = sqrt(Pr / (beta_sr + beta_rd + sigma_sqr_r)); % The power normalization factor
+
+% Compute the distances betweem each pair of constellation points. We
+% assume that the simulation settings are stationary across transmissions
+dist_sqr = abs(repmat(constellation, 1, Q) - repmat(constellation.', Q, 1)) .^ 2;
+E = get_factor_PEP_update(dist_sqr, beta_sr, beta_rd, g, sigma_sqr_d, sigma_sqr_r); % Get this thing fully vectorized
+%mean(E)
+
 %% 3. Start the computation
 % Compute the expected number of pairwise error bit based on the cost 
 % matrix for the previous transmissions, or initialize this value to be 1 /
 % 2 of the hamming distance matrix
 
-% xpcd_num_PE_bits = get_hamming_dist(Nbps) / 2 / Q; % Initialization
+xpcd_PBER = get_hamming_dist(Nbps) / 2 / Q / Nbps; % Initialize the expected pairwise BER before any transmission
+xpcd_PBER = xpcd_PBER .* get_factor_PEP_update(dist_sqr, beta_sr, beta_rd, g, sigma_sqr_d, sigma_sqr_r); % The expected pairwise BER after the first transmission (Gray mapping)
+disp(['Transmission 1: BER = ', num2str(sum(sum(xpcd_PBER)))]);
 
-fileID = fopen('test.data', 'r');
-c_last = fscanf(fileID, '%f');
-fclose(fileID);
-xpcd_num_PE_bits = get_xpcd_num_PE_bits(c_last, map); % Update
-map = 1 : Q; % Gray mapping
-
-sum(sum(xpcd_num_PE_bits))
-
-% Compute the distances betweem each pair of constellation points
-dist_sqr = abs(repmat(constellation, 1, Q) - repmat(constellation.', Q, 1)) .^ 2;
-dist_sqr = reshape(dist_sqr, Q ^ 2, 1);
-E = get_factor_PEP_update(dist_sqr, beta_sr, beta_rd, g, sigma_sqr_d, sigma_sqr_r); % Get this thing fully vectorized
-mean(E)
-
-% Compute and save c
-c = zeros(1, Q ^ 4);
-for idx = 1 : Q ^ 4
-    piqk = idx2piqk(idx, Q);
-    c(idx) = E((piqk(2) - 1) * Q + piqk(4)) * xpcd_num_PE_bits(piqk(1), piqk(3)) / Nbps;
+for m = 2 : M
+    tic;
+    % Compute and save the cost matrix for the m-th retransmission
+    c = zeros(1, Q ^ 4);
+    for idx = 1 : Q ^ 4
+        piqk = idx2piqk(idx, Q);
+        c(idx) = E(piqk(2), piqk(4)) * xpcd_PBER(piqk(1), piqk(3));
+    end
+    filename = ['test_case1_', num2str(m), '.data'];
+    fileID = fopen(filename, 'w+');
+    fprintf(fileID, '  %18.16e', c);
+    fclose(fileID);
+    
+    % Put the QAP solver here, currently we use a place holder which
+    % returns gray mapping only
+    map = solve_QAP(c);
+    
+    % Update the expected PBER
+    xpcd_PBER = get_xpcd_PBER(c, map);
+    toc;
+    disp(['Transmission ', num2str(m), ': BER = ', num2str(sum(sum(xpcd_PBER)))]);
 end
-
-fileID = fopen('test.data', 'w+');
-fprintf(fileID, '  %18.16e', c);
-fclose(fileID);

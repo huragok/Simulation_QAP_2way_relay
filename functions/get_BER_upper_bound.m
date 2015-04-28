@@ -26,12 +26,12 @@ function BER = get_BER_upper_bound(constellation, map, beta_sr, beta_rd, g, sigm
 [M, Q] = size(map); % Number of transmissions and size of the constellation
 Nbps = round(log2(Q)); % Number of bit per symbol
 
-xpcd_num_PE_bits = get_hamming_dist(Nbps) / 2 / Q; % Initialization
+xpcd_PBER = get_hamming_dist(Nbps) / 2 / Q / Nbps; % Initialization
 BER = zeros(M, 1);
 for m = 1 : M
     dist_sqr = abs(repmat(constellation(map(m, :)), 1, Q) - repmat(constellation(map(m, :)).', Q, 1)) .^ 2; % A Q-by-Q matrix containing the distance square mesurements
     E = get_factor_PEP_update(dist_sqr, beta_sr, beta_rd, g, sigma_sqr_d, sigma_sqr_r); % Get this thing fully vectorized
-    xpcd_num_PE_bits = xpcd_num_PE_bits .* E; % Update the expected number of pairwise error beat
-    BER(m) = sum(sum(xpcd_num_PE_bits)) / Nbps;
+    xpcd_PBER = xpcd_PBER .* E; % Update the expected number of pairwise error beat
+    BER(m) = sum(sum(xpcd_PBER));
 end
 

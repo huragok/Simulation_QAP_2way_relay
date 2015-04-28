@@ -44,7 +44,7 @@ g = sqrt(Pr / (beta_sr + beta_rd + sigma_sqr_r)); % The power normalization fact
 gamma_sr = abs(sqrt(beta_sr / 2) * (randn(N, 1) + 1i * randn(N, 1))) .^ 2; % Generate the channel absolute value square
 gamma_rd = abs(sqrt(beta_rd / 2) * (randn(N, 1) + 1i * randn(N, 1))) .^ 2;
 %% 3. Test some  E
-dist_sqr = [0, 0.2, 0.5, 1, 2, 4, 8, 16]
+dist_sqr = [0, 0.2, 0.5, 1, 2, 4, 8, 16];
 n_dist_sqr = length(dist_sqr);
 
 E_analytical = get_factor_PEP_update(dist_sqr, beta_sr, beta_rd, g, sigma_sqr_d, sigma_sqr_r);
@@ -60,7 +60,7 @@ for i_dist_sqr = 1 : n_dist_sqr
 end
 
 %% Visualization
-figure;
+h = figure;
 plot(dist_sqr, E_analytical / 2, 'bs-', 'linewidth', 2), hold on;
 plot(dist_sqr, E_montecarlo / 2, 'ro--', 'linewidth', 2);
 plot(dist_sqr, E_accurate_montecarlo, 'k-', 'linewidth', 2);
@@ -68,3 +68,4 @@ grid on;
 set(gca, 'fontsize', 16);
 xlabel('\epsilon'), ylabel('E');
 legend('Chernoff analytical', 'Chernoff Monte-Carlo', 'Monte-Carlo');
+saveas(h, 'Test_get_factor_PEP_update.fig')
