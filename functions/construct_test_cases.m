@@ -36,8 +36,6 @@ sigma_sqr = 10 .^ (-dB_inv_sigma2 / 10); % The noise covariance at all nodes are
 beta_sr = d(:, 1) .^ -nu; % n_d-by-1 vector
 beta_rd = d(:, 2) .^ -nu;
 
-
-
 % Compute the distances betweem each pair of constellation points. We
 % assume that the simulation settings are stationary across transmissions
 dist_sqr = abs(repmat(constellation, 1, Q) - repmat(constellation.', Q, 1)) .^ 2;
@@ -73,9 +71,11 @@ for i_d = 1 : n_d
 
             test_cases(i_case).param_derived.g = sqrt(Pr(i_Pr) / (beta_sr(i_d) + beta_rd(i_d) + sigma_sqr(i_sigma2))); % The power normalization factor
 
-            % Compute the distances betweem each pair of constellation points. We
-            % assume that the simulation settings are stationary across transmissions
-            test_cases(i_case).param_derived.E = get_factor_PEP_update(dist_sqr, beta_sr(i_d), beta_rd(i_d), test_cases(i_case).param_derived.g, sigma_sqr(i_sigma2), sigma_sqr(i_sigma2)); % Get this thing fully vectorized
+            % Compute the updating matrix. We assume that the simulation 
+            % settings are stationary across transmissions. Saved as a 
+            %1-by-Q^2 vector which is the row major order form of matrix E
+            E = get_factor_PEP_update(dist_sqr, beta_sr(i_d), beta_rd(i_d), test_cases(i_case).param_derived.g, sigma_sqr(i_sigma2), sigma_sqr(i_sigma2)); % Get this thing fully vectorized
+            test_cases(i_case).param_derived.E = reshape(E.', 1, Q ^ 2);
             
             if verbose
                 toc;

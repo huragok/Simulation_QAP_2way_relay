@@ -41,34 +41,26 @@ for i_case = 1 : n_case
     
     % unpack the parameters
     
+    E = test_cases(i_case).param_derived.E;
     xpcd_PBER = get_hamming_dist(test_cases(i_case).param_origin.Nbps) / 2 / test_cases(i_case).param_derived.Q / test_cases(i_case).param_origin.Nbps; % Initialize the expected pairwise BER before any transmission
-    xpcd_PBER = xpcd_PBER .* test_cases(i_case).param_derived.E; % The expected pairwise BER after the first transmission (Gray mapping)
+    xpcd_PBER = xpcd_PBER .* E; % The expected pairwise BER after the first transmission (Gray mapping)
     disp([' - Transmission 1: BER = ', num2str(sum(sum(xpcd_PBER)))]);
     
     test_cases(i_case).map = zeros(test_cases(i_case).param_origin.M - 1, test_cases(i_case).param_derived.Q);
     for m = 2 : test_cases(i_case).param_origin.M
-        % tic;
-        % Compute and save the cost matrix for the m-th retransmission
-        c = zeros(1, test_cases(i_case).param_derived.Q ^ 4);
-        for idx = 1 : test_cases(i_case).param_derived.Q ^ 4
-            piqk = idx2piqk(idx, test_cases(i_case).param_derived.Q);
-            c(idx) = test_cases(i_case).param_derived.E(piqk(2), piqk(4)) * xpcd_PBER(piqk(1), piqk(3));
-        end
         
-        % Write each cost matrix to a file
-        filename = ['test_case', num2str(i_case), '_', num2str(m) , '_', time_step, '.data'];
-        fileID = fopen(filename, 'w+');
-        fprintf(fileID, '  %18.16e', c);
-        fclose(fileID);
+        % Save the two 2-D cost matrices of the QAP-KB problem
+        filename = ['test_case', num2str(i_case), '_', num2str(m) , '_', time_step, '.mat'];
+        save(filename, 'xpcd_PBER', 'E');
 
         % Put the QAP solver here, currently we use a place holder which
         % returns gray mapping only. Save the resulting map also to the
         % structure
-        map = solve_QAP(c);
+        map = solve_QAP(xpcd_PBER, E);
         test_cases(i_case).map(m - 1, :) = map;
         
         % Update the expected PBER
-        xpcd_PBER = get_xpcd_PBER(c, map);
+        xpcd_PBER = get_xpcd_PBER(xpcd_PBER, E, map);
         % toc;
         disp([' - Transmission ', num2str(m), ': BER = ', num2str(sum(sum(xpcd_PBER)))]);
     end
