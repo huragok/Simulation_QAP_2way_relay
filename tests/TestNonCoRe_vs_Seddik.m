@@ -26,7 +26,7 @@ d1 = 0.5; % Distance between S and R
 d2 = 0.5; % Distance between R and D
 nu = 3; % Pathloss factor
 
-N = 1e8; % Number of monte-carlo run
+N = 2e7; % Number of monte-carlo run
 
 M = 4; % Total number of transmissions
 
