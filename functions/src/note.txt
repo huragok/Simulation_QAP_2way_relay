@@ -1,0 +1,38 @@
+vecteur - vector
+fichier - file
+donnees - data
+poubelle - trash bin
+ligne - line
+lire - read
+tire_solution_aleatoire - draw_solution_random
+recuit - annealing
+
+a_la_ligne : read to the first delimiting character (\n)
+the desired file format is like this
+"""
+n
+123 456 789
+"""
+a b two d matrix
+fixed size of 851 in SA, dynamically allocated in tabou
+a[i][j] row major order read in
+call tabu_search() or use a for loop and repeatedly call tire_solution_aleatoire() and recuit() to iterate
+
+in tabou method:
+solution: global vector holding solution to be iterated, randomly initialized
+a, b: global variables  the flow and distance matrix (2d), long type (already scaled to int)
+n problem size
+other parameters as specified
+
+in sa method:
+p: global vector holding solution to be randomized and annealed
+a, b: global variables  the flow and distance matrix (2d), long type (already scaled to int)
+n problem size
+Cout: global input argument, the cost
+nb_iterations: number of iterations for each annealing
+
+nb_res resolution
+
+
+
+
