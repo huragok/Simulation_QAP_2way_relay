@@ -20,12 +20,16 @@ type_mod = 'QAM';
 % We also assume that the channel and noise are stationary across
 % transmissions
 
-dB_inv_sigma2 = 16 : 2 : 22; % 1/sigma2 in dB
+dB_inv_sigma2 = 30; % 1/sigma2 in dB
 Pr = 2; % Power at the relay
 d = [0.5, 0.5]; % Distance between S and R, R and D
 
 nu = 3; % Pathloss factor
 M = 4; % Number of retransmission
+
+epsilon = 0.01; % Tolerance to control the error of scaling the 2 cost matrices to integer
+n_itr = 100000; % Number of iterations for the tabu QAP solver
+
 %% 2. Initialization: generate and save all test cases
 test_cases = construct_test_cases(Nbps, type_mod, dB_inv_sigma2, Pr, d, nu, M, true);
 n_case = length(test_cases);
@@ -44,6 +48,10 @@ for i_case = 1 : n_case
     E = test_cases(i_case).param_derived.E;
     xpcd_PBER = get_hamming_dist(test_cases(i_case).param_origin.Nbps) / 2 / test_cases(i_case).param_derived.Q / test_cases(i_case).param_origin.Nbps; % Initialize the expected pairwise BER before any transmission
     xpcd_PBER = xpcd_PBER .* E; % The expected pairwise BER after the first transmission (Gray mapping)
+    
+    pow10_E = get_scale_power10(E, epsilon);
+    pow10_xpcd_PBER = get_scale_power10(xpcd_PBER, epsilon);
+    
     disp([' - Transmission 1: BER = ', num2str(sum(sum(xpcd_PBER)))]);
     
     test_cases(i_case).map = zeros(test_cases(i_case).param_origin.M - 1, test_cases(i_case).param_derived.Q);
@@ -56,11 +64,13 @@ for i_case = 1 : n_case
         % Put the QAP solver here, currently we use a place holder which
         % returns gray mapping only. Save the resulting map also to the
         % structure
-        map = solve_QAP(xpcd_PBER, E);
+  
+        map = solve_QAP(xpcd_PBER, E, pow10_xpcd_PBER, pow10_E, n_itr);
         test_cases(i_case).map(m - 1, :) = map;
         
         % Update the expected PBER
         xpcd_PBER = get_xpcd_PBER(xpcd_PBER, E, map);
+        pow10_xpcd_PBER = get_scale_power10(xpcd_PBER, epsilon);
         % toc;
         disp([' - Transmission ', num2str(m), ': BER = ', num2str(sum(sum(xpcd_PBER)))]);
     end
