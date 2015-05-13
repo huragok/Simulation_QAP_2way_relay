@@ -7,7 +7,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     return;
 }
 
-long unif(long low, long high)
+size_t unif(long low, long high)
 {
     return(low + long(double(high - low + 1) * rando()));
 }

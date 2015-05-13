@@ -1,3 +1,4 @@
 *.asv
 *.data
 *.mat
+*.mexw64
