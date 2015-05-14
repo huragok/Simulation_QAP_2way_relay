@@ -21,7 +21,8 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	}
     int64_T* input = (int64_T *)mxGetData(prhs[0]); // Size of the problem
     //mexPrintf("%l", *input);
- 
+    
+    mexPrintf("%d", sizeof(int));
     int64_T M = mxGetM(prhs[0]);
     int64_T N = mxGetN(prhs[0]);
     plhs[0] = mxCreateDoubleMatrix(2, 1, mxREAL);

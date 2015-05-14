@@ -39,4 +39,4 @@ if max(f_int) > MAX_LONG || max(d_int) > MAX_LONG % Check whether the scaling is
 end
 
 % Call the cmex worker function. All the input must be of type int64
-[map, cost] = tabou_QAP_mex(Q, f_int, d_int, n_itr);
+[map, cost] = tabou_QAP_mex(f_int, d_int, n_itr);

@@ -5,7 +5,7 @@ using namespace std;
  * The gateway routine that for the tabu search QAP solver.
  *
  * @param nlhs Number of output arguments, at most 2
- * @param plhs Pointer array to the output arguments: plhs[0] is 1-by-Q mxArray (map) and plhs[0] is a 1-by-1 mxArray (cost). plhs[0] should be int16_T and plhs[1] should be int64_T
+ * @param plhs Pointer array to the output arguments: plhs[0] is 1-by-Q mxArray (map) and plhs[0] is a 1-by-1 mxArray (cost). Both should be int64_T
  * @param nrhs Number of input arguments, must be 3
  * @param prhs Pointer array to the input arguments: prhs[0] is a Q-by-Q mxArray (flow matrix), prhs[1] is a Q-by-Q mxArray (distance matrix) and prhs[2] is a 1-by-1 mxArray (number of iterations). All should be of type int64_T
  */
@@ -28,7 +28,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     }
     
     // Read and check the size of the input matrices 
-    int Q = mxGetM(prhs[0]);
+    int64_T Q = mxGetM(prhs[0]);
     if (Q != mxGetN(prhs[0]) || Q != mxGetM(prhs[1]) || Q != mxGetN(prhs[1]))
     {
         mexErrMsgTxt("Wrong input matrix size: both the flow and distance matrix must be of size Q-by-Q.");
@@ -42,28 +42,41 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     int64_T nitr = *(int64_T*)mxGetData(prhs[2]);
     
     // Create the ouput arguments
-    plhs[0] = mxCreateNumericMatrix(1, Q, mxINT16_CLASS, mxREAL);
+    plhs[0] = mxCreateNumericMatrix(1, Q, mxINT64_CLASS, mxREAL);
     plhs[1] = mxCreateNumericMatrix(1, 1, mxINT64_CLASS, mxREAL);    
-    size_t* map = (size_t*)mxGetData(plhs[0]);
+    int64_T* map = (int64_T*)mxGetData(plhs[0]);
     int64_T* cost = (int64_T*)mxGetData(plhs[1]);
     
+    // Generate the random solution
+    int64_T* solution = (int64_T*)mxMalloc((Q + 1) * sizeof(int64_T));
+    
+    generate_random_solution(Q, solution);
+    
+// Call the worker functions to perform the tabu search
+    for (int64_T k = 1; k <= Q; k++)
+    {
+        map[k] = solution[k];
+    }
+    *cost = x10;
+    
     // Free memories
+    mxFree(solution);
     destroy_type_matrix(flow, Q);
     destroy_type_matrix(dist, Q);
     return;
 }
 
-int64_T** array_to_type_matrix(int64_T* arr, int Q)
+int64_T** array_to_type_matrix(int64_T* arr, int64_T Q)
 {
     int64_T** matrix = (int64_T**)mxMalloc(Q * sizeof(int64_T*));
-    for (int i = 0; i < Q; i++)
+    for (int64_T i = 0; i < Q; i++)
     {
         matrix[i] = (int64_T*)mxMalloc(Q * sizeof(int64_T));
     }
     
-    for (int r = 0; r < Q; r++)
+    for (int64_T r = 0; r < Q; r++)
     {
-        for (int c = 0; c < Q; c++)
+        for (int64_T c = 0; c < Q; c++)
         {
             matrix[r][c] = arr[c * Q + r];
         }
@@ -71,12 +84,86 @@ int64_T** array_to_type_matrix(int64_T* arr, int Q)
     return(matrix);
 }
 
-void destroy_type_matrix(int64_T** matrix, int Q)
+void destroy_type_matrix(int64_T** matrix, int64_T Q)
 {
-    for (size_t i = 0; i < Q; i++)
+    for (int64_T i = 0; i < Q; i++)
     {
         mxFree(matrix[i]);
     }
     mxFree(matrix);
     return;
 }
+
+void generate_random_solution(int64_T Q, int64_T* sol)
+{
+	int64_T i;
+	for (i = 0; i <= Q; i++)
+    {
+        sol[i] = i;
+    }
+	for (i = 1; i < Q; i++)
+    {
+        transpose(sol[i], sol[unif(i, Q)]);
+    }
+    return;
+}
+
+void transpose(int64_T& a, int64_T& b)
+{
+    int64_T temp = a;
+    a = b;
+    b = temp;
+    return;
+}
+
+int64_T unif(int64_T low, int64_T high)
+{
+    return(low + int64_T(double(high - low + 1) * rando()));
+}
+
+double rando()
+{
+    int64_T h, p12, p13, p21, p23;
+    
+	h = x10 / q13;
+    p13 = -a13 * (x10 - h * q13) - h * r13;
+	h = x11 / q12;
+    p12 = a12 * (x11 - h * q12) - h * r12;  
+	if (p13 < 0) p13 = p13 + m;
+    if (p12 < 0) p12 = p12 + m;
+	
+    x10 = x11;
+    x11 = x12;
+    x12 = p12 - p13;
+    if (x12 < 0) x12 = x12 + m;
+    
+	h = x20 / q23;
+    p23 = -a23 * (x20 - h * q23) - h * r23;
+	h = x22 / q21;
+    p21 = a21 * (x22 - h * q21) - h * r21;
+	if (p23 < 0) p23 = p23 + m2;
+    if (p21 < 0) p21 = p21 + m2;
+    
+	x20 = x21;
+    x21 = x22;
+    x22 = p21-p23;
+    if(x22 < 0) x22 = x22 + m2;
+  
+    if (x12 < x22)
+    {
+        h = x12 - x22 + m;
+    }
+    else
+    {
+        h = x12 - x22;
+    }
+    
+	if (h == 0)
+    {
+        return(1.0);
+    }
+    else
+    {
+        return(h * invm);
+    }
+ }
