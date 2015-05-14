@@ -46,6 +46,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     plhs[1] = mxCreateNumericMatrix(1, 1, mxINT64_CLASS, mxREAL);    
     int64_T* map = (int64_T*)mxGetData(plhs[0]);
     int64_T* cost = (int64_T*)mxGetData(plhs[1]);
+    int64_T cost_tmp;
     
     // Generate the random solution
     int64_T* solution = (int64_T*)mxMalloc((Q + 1) * sizeof(int64_T));
@@ -53,12 +54,20 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     generate_random_solution(Q, solution);
     
 // Call the worker functions to perform the tabu search
-    for (int64_T k = 1; k <= Q; k++)
-    {
-        map[k] = solution[k];
-    }
-    *cost = x10;
+    //for (int64_T k = 1; k <= Q; k++)
+    //{
+    //    map[k] = solution[k];
+    //}
+    //*cost = x10;
     
+    tabu_search(Q, 
+                flow, dist,
+                solution, cost_tmp,
+                9 * Q / 10, 11 * Q / 10, 
+                Q * Q * 2,
+                nitr);
+    
+    *cost = cost_tmp;             
     // Free memories
     mxFree(solution);
     destroy_type_matrix(flow, Q);
@@ -175,5 +184,38 @@ void tabu_search(int64_T n,
                  int64_T aspiration,
                  int64_T nr_iterations)
 {
+    int64_T* p;                        // current solution
+	int64_T** delta;                    // store move costs
+	int64_T** tabu_list;                // tabu status
+	int64_T current_iteration;               // current iteration
+	int64_T current_cost;                    // current sol. value
+	int64_T i, j, k, i_retained, j_retained;  // indices
+    
+    /***************** dynamic memory allocation *******************/
+	p = (int64_T*)mxMalloc((n + 1) * sizeof(int64_T));
+	delta = (int64_T**)mxMalloc((n + 1) * sizeof(int64_T*));
+	for (i = 1; i <= n; i++)
+    {
+        delta[i] = (int64_T*)mxMalloc((n + 1) * sizeof(int64_T));
+    }
+	tabu_list = (int64_T**)mxMalloc((n + 1) * sizeof(int64_T*));
+	for (i = 1; i <= n; i++)
+    {
+        tabu_list[i] = (int64_T*)mxMalloc((n + 1) * sizeof(int64_T));
+    }
+    
+     /***************** dynamic memory release *******************/
+    mxFree(p);
+    for (i=1; i <= n; i++)
+    {
+        mxFree(tabu_list[i]);
+    }
+    mxFree(tabu_list);
+    for (i=1; i <= n; i++)
+    {
+        mxFree(delta[i]);
+    }
+    mxFree(delta);
+    
     return;
 }
