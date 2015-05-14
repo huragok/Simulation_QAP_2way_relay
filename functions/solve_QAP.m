@@ -10,10 +10,8 @@ function [map, cost] = solve_QAP_tabu(f, d, pow10_f, pow10_d, n_itr)
 %   E. Taillard.
 % _________________________________________________________________________
 %	Inputs:
-% 		f:          1-by-Q^2 vector, the 2D "Flow" matrix f_{pq} in row 
-%                   major order
-%       d:          1-by-Q^2 vector, the 2D "Distance" matrix d_{ik} in row
-%                   major order
+% 		f:          Q-by-Q matrix, the 2D "Flow" matrix f_{pq}
+%       d:          Q-by-Q matrix, the 2D "Distance" matrix d_{ik}
 %       pow10_f:    Integer scalar, the power of 10 neede to scale and
 %                   round the "Flow" matrix
 %       pow10_d:    Integer scalar, the power of 10 neede to scale and
@@ -30,14 +28,15 @@ function [map, cost] = solve_QAP_tabu(f, d, pow10_f, pow10_d, n_itr)
 % Codename: Dunkirk
 % _________________________________________________________________________
 
-MAX_LONG = 2147483647; % Maximum number represented by 
-Q = round(length(f) ^ (1 / 2));
-f_int = round(f * 10 ^ pow10_f); % Convert the flow matrix to integer
-d_int = round(d * 10 ^ pow10_d); % Convert the distanve matrix to integer
+MAX_LONG = 2^63 - 1; % Maximum number represented by 
+Q = int64(size(f, 1));
+f_int = int64(round(f * 10 ^ pow10_f)); % Convert the flow matrix to integer
+d_int = int64(round(d * 10 ^ pow10_d)); % Convert the distanve matrix to integer
+n_itr = int64(n_itr);%
 
 if max(f_int) > MAX_LONG || max(d_int) > MAX_LONG % Check whether the scaling is out of range
     error('Integer out of c++ range!');
 end
 
-% Call the cmex worker function
+% Call the cmex worker function. All the input must be of type int64
 [map, cost] = tabou_QAP_mex(Q, f_int, d_int, n_itr);

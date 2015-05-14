@@ -73,9 +73,8 @@ for i_d = 1 : n_d
 
             % Compute the updating matrix. We assume that the simulation 
             % settings are stationary across transmissions. Saved as a 
-            %1-by-Q^2 vector which is the row major order form of matrix E
-            E = get_factor_PEP_update(dist_sqr, beta_sr(i_d), beta_rd(i_d), test_cases(i_case).param_derived.g, sigma_sqr(i_sigma2), sigma_sqr(i_sigma2)); % Get this thing fully vectorized
-            test_cases(i_case).param_derived.E = reshape(E.', 1, Q ^ 2);
+            % Q-by-Q matrix
+            test_cases(i_case).param_derived.E = get_factor_PEP_update(dist_sqr, beta_sr(i_d), beta_rd(i_d), test_cases(i_case).param_derived.g, sigma_sqr(i_sigma2), sigma_sqr(i_sigma2)); % Get this thing fully vectorized
             
             if verbose
                 toc;

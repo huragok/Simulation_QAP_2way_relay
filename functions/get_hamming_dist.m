@@ -6,7 +6,7 @@ function hamming_dist = get_hamming_dist(Nbps)
 %	Inputs:
 % 		Nbps:           scalar, number of bits per symbol
 %	Outputs:
-%		hamming_dist:   1-by-2 ^ 2Nbps vector, the row major order vector
+%		hamming_dist:   Q-by-Q vector, the row major order vector
 %                       of the hamming distance matrix
 % _________________________________________________________________________
 % Author: Wenhao Wu
@@ -22,5 +22,3 @@ for i = 0 : Q - 1
         hamming_dist(i + 1, j + 1) = sum(de2bi(bitxor(i, j)));
     end
 end
-
-hamming_dist = reshape(hamming_dist, 1, Q ^ 2);

@@ -21,9 +21,12 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	}
     int64_T* input = (int64_T *)mxGetData(prhs[0]); // Size of the problem
     //mexPrintf("%l", *input);
-
-    plhs[0] = mxCreateDoubleMatrix(1, 1, mxREAL);
+ 
+    int64_T M = mxGetM(prhs[0]);
+    int64_T N = mxGetN(prhs[0]);
+    plhs[0] = mxCreateDoubleMatrix(2, 1, mxREAL);
     double* output = mxGetPr(plhs[0]);
-    *output = (double)(*input);
+    output[0] = (double)(M);
+    output[1] = (double)(N);
     return;
 }

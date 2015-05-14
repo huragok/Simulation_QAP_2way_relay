@@ -3,7 +3,7 @@ function pwr_a = get_scale_power10(a, epsilon)
 %   Estimate the power of 10 needed to scale both input matrix to integer
 % _________________________________________________________________________
 %	Inputs:
-% 		a:              1-by-Q^2 postitive vector, the row-major order 
+% 		a:              Q-by-Q postitive vector, the row-major order 
 %                       matrix to be scaled
 %       epsilon:        scalar, the relative tolerance of the rounding
 %                       error
