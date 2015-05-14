@@ -29,7 +29,6 @@ function [map, cost] = solve_QAP_tabu(f, d, pow10_f, pow10_d, n_itr)
 % _________________________________________________________________________
 
 MAX_LONG = 2^63 - 1; % Maximum number represented by 
-Q = int64(size(f, 1));
 f_int = int64(round(f * 10 ^ pow10_f)); % Convert the flow matrix to integer
 d_int = int64(round(d * 10 ^ pow10_d)); % Convert the distanve matrix to integer
 n_itr = int64(n_itr);%

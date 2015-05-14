@@ -53,7 +53,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
     
     generate_random_solution(Q, solution);
     
-// Call the worker functions to perform the tabu search
+    // Call the worker functions to perform the tabu search
     //for (int64_T k = 1; k <= Q; k++)
     //{
     //    map[k] = solution[k];
@@ -67,7 +67,13 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
                 Q * Q * 2,
                 nitr);
     
-    *cost = cost_tmp;             
+    // Return the results to matlab
+    *cost = cost_tmp;
+    for (int64_T i = 0; i < Q; i++)
+    {
+        map[i] = solution[i + 1];
+    }
+    
     // Free memories
     mxFree(solution);
     destroy_type_matrix(flow, Q);
@@ -77,17 +83,17 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 
 int64_T** array_to_type_matrix(int64_T* arr, int64_T Q)
 {
-    int64_T** matrix = (int64_T**)mxMalloc(Q * sizeof(int64_T*));
-    for (int64_T i = 0; i < Q; i++)
+    int64_T** matrix = (int64_T**)mxMalloc((Q + 1) * sizeof(int64_T*));
+    for (int64_T i = 1; i <= Q; i++)
     {
-        matrix[i] = (int64_T*)mxMalloc(Q * sizeof(int64_T));
+        matrix[i] = (int64_T*)mxMalloc((Q + 1) * sizeof(int64_T));
     }
     
-    for (int64_T r = 0; r < Q; r++)
+    for (int64_T r = 1; r <= Q; r++)
     {
-        for (int64_T c = 0; c < Q; c++)
+        for (int64_T c = 1; c <= Q; c++)
         {
-            matrix[r][c] = arr[c * Q + r];
+            matrix[r][c] = arr[(c - 1) * Q + (r - 1)];
         }
     }
     return(matrix);
@@ -95,7 +101,7 @@ int64_T** array_to_type_matrix(int64_T* arr, int64_T Q)
 
 void destroy_type_matrix(int64_T** matrix, int64_T Q)
 {
-    for (int64_T i = 0; i < Q; i++)
+    for (int64_T i = 1; i <= Q; i++)
     {
         mxFree(matrix[i]);
     }
@@ -123,6 +129,18 @@ void transpose(int64_T& a, int64_T& b)
     a = b;
     b = temp;
     return;
+}
+
+int64_T min(int64_T a, int64_T b)
+{
+    if (a < b)
+    {
+        return(a);
+    }
+    else
+    {
+        return(b);
+    }
 }
 
 int64_T unif(int64_T low, int64_T high)
@@ -175,8 +193,31 @@ double rando()
     {
         return(h * invm);
     }
- }
+}
 
+int64_T compute_delta(int64_T n, int64_T** a, int64_T** b, int64_T* p, int64_T i, int64_T j)
+{
+    int64_T d, k;
+	d = (a[i][i] - a[j][j]) * (b[p[j]][p[j]] - b[p[i]][p[i]]) +
+        (a[i][j] - a[j][i]) * (b[p[j]][p[i]] - b[p[i]][p[j]]);
+	for (k = 1; k <= n; k++)
+    {
+        if (k!=i && k!=j)
+        {
+            d += (a[k][i] - a[k][j]) * (b[p[k]][p[j]] - b[p[k]][p[i]]) +
+                 (a[i][k] - a[j][k]) * (b[p[j]][p[k]] - b[p[i]][p[k]]);
+        }
+    }
+	return(d);
+}
+
+int64_T compute_delta_part(int64_T** a, int64_T** b, int64_T* p, int64_T** delta, int64_T i, int64_T j, int64_T r, int64_T s)
+{
+    return(delta[i][j] + 
+           (a[r][i]-a[r][j]+a[s][j]-a[s][i]) * (b[p[s]][p[i]]-b[p[s]][p[j]]+b[p[r]][p[j]]-b[p[r]][p[i]]) +
+           (a[i][r]-a[j][r]+a[j][s]-a[i][s]) * (b[p[i]][p[s]]-b[p[j]][p[s]]+b[p[j]][p[r]]-b[p[i]][p[r]]));
+}
+ 
 void tabu_search(int64_T n, 
                  int64_T** a, int64_T** b,
                  int64_T* best_sol, int64_T& best_cost,
@@ -204,18 +245,120 @@ void tabu_search(int64_T n,
         tabu_list[i] = (int64_T*)mxMalloc((n + 1) * sizeof(int64_T));
     }
     
-     /***************** dynamic memory release *******************/
+    /************** current solution initialization ****************/
+	for (i = 1; i <= n; i++)
+    {
+        p[i] = best_sol[i];
+    }
+    
+    /********** initialization of current solution value ***********/
+	/**************** and matrix of cost of moves  *****************/
+	current_cost = 0;
+	for (i = 1; i <= n; i = i + 1)
+    {
+        for (j = 1; j <= n; j = j + 1)
+        {
+            current_cost = current_cost + a[i][j] * b[p[i]][p[j]];
+            if (i < j)
+            {
+                delta[i][j] = compute_delta(n, a, b, p, i, j);
+            }
+        }
+	}
+	best_cost = current_cost;
+    
+	/****************** tabu list initialization *******************/
+	for (i = 1; i <= n; i++) 
+    {
+        for (j = 1; j <= n; j++)
+        {
+            tabu_list[i][j] = -(n * i + j);
+        }
+    }
+    
+    /******************** main tabu search loop ********************/
+	for (current_iteration = 1; current_iteration <= nr_iterations; current_iteration++)
+	{
+        /** find best move (i_retained, j_retained) **/
+        i_retained = infinite;       // in case all moves are tabu
+        int64_T min_delta = infinite;   // retained move cost
+        bool autorized;               // move not tabu?
+        bool aspired;                 // move forced?
+        bool already_aspired = false; // in case many moves forced
+
+        for (i = 1; i < n; i++)
+        {
+            for (j = i+1; j <= n; j++)
+            {
+                autorized = (tabu_list[i][p[j]] < current_iteration) || 
+                            (tabu_list[j][p[i]] < current_iteration);
+
+                aspired = (tabu_list[i][p[j]] < current_iteration-aspiration)||
+                          (tabu_list[j][p[i]] < current_iteration-aspiration)||
+                          (current_cost + delta[i][j] < best_cost);                
+
+                if ((aspired && !already_aspired) || // first move aspired
+                    (aspired && already_aspired && (delta[i][j] < min_delta)) || // many move aspired and take best one
+                    (!aspired && !already_aspired && (delta[i][j] < min_delta) && autorized)) // no move aspired yet
+                {
+                    i_retained = i;
+                    j_retained = j;
+                    min_delta = delta[i][j];
+                    if (aspired) 
+                    {
+                        already_aspired = true;
+                    };
+                }
+            }
+        }
+
+        if (i_retained == infinite)
+        {
+            mexWarnMsgTxt("All moves are tabu!");
+        }
+        else 
+        {
+            /** transpose elements in pos. i_retained and j_retained **/
+            transpose(p[i_retained], p[j_retained]);
+            // update solution value
+            current_cost += delta[i_retained][j_retained];
+            // forbid reverse move for a random number of iterations
+            tabu_list[i_retained][p[j_retained]] = current_iteration + unif(min_size,max_size);
+            tabu_list[j_retained][p[i_retained]] = current_iteration + unif(min_size,max_size);
+
+            // best solution improved ?
+            if (current_cost < best_cost)
+            {
+                best_cost = current_cost;
+                for (k = 1; k <= n; k++)
+                {
+                    best_sol[k] = p[k];
+                }
+                mexPrintf("Solution of the value %f found at iter. %f\n", (double)(best_cost), (double)(current_iteration));
+            }
+
+            // update matrix of the move costs
+            for (i = 1; i < n; i++)
+            {
+                for (j = i+1; j <= n; j++)
+                {
+                    if (i != i_retained && i != j_retained && j != i_retained && j != j_retained)
+                    {
+                        delta[i][j] = compute_delta_part(a, b, p, delta, i, j, i_retained, j_retained);
+                    }
+                    else
+                    {
+                        delta[i][j] = compute_delta(n, a, b, p, i, j);
+                    }
+                }
+            }
+        }
+	}
+   
+    /***************** dynamic memory release *******************/
     mxFree(p);
-    for (i=1; i <= n; i++)
-    {
-        mxFree(tabu_list[i]);
-    }
-    mxFree(tabu_list);
-    for (i=1; i <= n; i++)
-    {
-        mxFree(delta[i]);
-    }
-    mxFree(delta);
+    destroy_type_matrix(tabu_list, n);
+    destroy_type_matrix(delta, n);
     
     return;
 }

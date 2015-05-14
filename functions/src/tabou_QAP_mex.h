@@ -18,6 +18,8 @@
 #define TABOUQAP
 #include "mex.h"
 
+const int64_T infinite = 999999999;
+
 /**
  * Convert a 1-D array to a type_matrix object
  */
@@ -37,6 +39,11 @@ void generate_random_solution(int64_T n, int64_T* sol);
  * Swap 2 int variables
  */
 void transpose(int64_T& a, int64_T& b);
+
+/**
+ * Return the smaller value of 2 integers
+ */ 
+int64_T min(int64_T a, int64_T b);
 
 /**
  * Return an integer between low and high 
@@ -71,6 +78,16 @@ int64_T x10 = 12345, x11 = 67890, x12 = 13579,
         x20 = 24680, x21 = 98765, x22 = 43210; // initializae the values of seeds
 
 double rando();
+
+/**
+ * Compute the cost difference if elements i and j are transposed in permutation (solution) p 
+ */
+int64_T compute_delta(int64_T n, int64_T** a, int64_T** b, int64_T* p, int64_T i, int64_T j);
+
+/**
+ *  Idem, but the value of delta[i][j] is supposed to be known before the transposition of elements r and s     
+ */
+int64_T compute_delta_part(int64_T** a, int64_T** b, int64_T* p, int64_T** delta, int64_T i, int64_T j, int64_T r, int64_T s);
 
 /**
  * The worker function to execute the tabou search
