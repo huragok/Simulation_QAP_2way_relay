@@ -72,4 +72,23 @@ int64_T x10 = 12345, x11 = 67890, x12 = 13579,
 
 double rando();
 
+/**
+ * The worker function to execute the tabou search
+ *
+ * @param n, problem size
+ * @param a, flows matrix
+ * @param b, distance matrix
+ * @param best_sol, best solution found
+ * @param best_cost, cost of best solution
+ * @param min_size, parameter 1 (< n^2/2)
+ * @param max_size, parameter 2 (< n^2/2)
+ * @param aspiration, parameter 3 (> n^2/2)
+ * @param nr_iterations, number of iterations 
+ */
+void tabu_search(int64_T n, 
+                 int64_T** a, int64_T** b,
+                 int64_T* best_sol, int64_T& best_cost,
+                 int64_T min_size, int64_T max_size,
+                 int64_T aspiration,
+                 int64_T nr_iterations);
 #endif

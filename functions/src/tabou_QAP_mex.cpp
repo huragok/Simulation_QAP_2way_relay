@@ -167,3 +167,13 @@ double rando()
         return(h * invm);
     }
  }
+
+void tabu_search(int64_T n, 
+                 int64_T** a, int64_T** b,
+                 int64_T* best_sol, int64_T& best_cost,
+                 int64_T min_size, int64_T max_size,
+                 int64_T aspiration,
+                 int64_T nr_iterations)
+{
+    return;
+}
