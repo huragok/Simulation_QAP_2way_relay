@@ -8,7 +8,7 @@ addpath('./functions');
 
 %% 1. Simulation settings
 % Constellation specification
-Nbps = 4;
+Nbps = 6;
 type_mod = 'QAM';
 
 % Node S, R, D power, channel power and noise power specification
@@ -28,7 +28,7 @@ nu = 3; % Pathloss factor
 M = 4; % Number of retransmission
 
 epsilon = 0.01; % Tolerance to control the error of scaling the 2 cost matrices to integer
-n_itr = 1000; % Number of iterations for the tabu QAP solver
+n_itr = 1000000; % Number of iterations for the tabu QAP solver
 
 %% 2. Initialization: generate and save all test cases
 test_cases = construct_test_cases(Nbps, type_mod, dB_inv_sigma2, Pr, d, nu, M, true);

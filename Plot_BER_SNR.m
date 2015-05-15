@@ -5,10 +5,13 @@ clc;
 addpath('../functions');
 
 %% 0. Load the data file that contains the test result
-load('Test_2015514162030429.mat')
+%load('Test_2015514194827322.mat') % 16QAM
+%load('Test_20155141952256.MAT') % 32QAM
+load('Test_201551420259238.MAT') % 64QAM
+
 
 %% 1. Simulation settings
-N = 2e7; % Number of monte-carlo run
+N = 1E6; % Number of monte-carlo run
 
 Nbps = test_cases(1).param_origin.Nbps;
 type_mod = test_cases(1).param_origin.type_mod;
@@ -39,7 +42,77 @@ beta_rd = d2 ^ -nu;
 
 g = sqrt(Pr ./ (beta_sr + beta_rd + sigma_sqr_r)); % The power normalization factor
 
-map_noncore = repmat(1 : Q, M, 1);
-map_seddik = zeros(M, Q);
-map_seddik(1, :) = 1 : Q; % Gray mapping
-map_seddik(2 : M, :) = repmat(sedik, M - 1, 1);
+map_noncore = get_map_noncore(Q, M);
+map_seddik = get_map_seddik(Q, M);
+map_QAP = cell(n_sigma2, 1);
+for i_sigma2 = 1 : n_sigma2
+    map_QAP{i_sigma2} = [1 : Q; test_cases(i_sigma2).map];
+end
+
+%% 3. Not let us test the bit error rate
+BER_analytical = cell(n_sigma2, 1);
+BER_MC = cell(n_sigma2, 1);
+
+for i_sigma2 = 1 : n_sigma2
+    tic
+    % Compute the bit error rate using our analytical upper bound
+    BER_analytical{i_sigma2} = zeros(M, 3);
+    BER_analytical{i_sigma2}(:, 1) = get_BER_upper_bound(constellation, map_noncore, beta_sr, beta_rd, g(i_sigma2), sigma_sqr_d(i_sigma2), sigma_sqr_r(i_sigma2));
+    BER_analytical{i_sigma2}(:, 2) = get_BER_upper_bound(constellation, map_seddik, beta_sr, beta_rd, g(i_sigma2), sigma_sqr_d(i_sigma2), sigma_sqr_r(i_sigma2));
+    BER_analytical{i_sigma2}(:, 3) = get_BER_upper_bound(constellation, map_QAP{i_sigma2}, beta_sr, beta_rd, g(i_sigma2), sigma_sqr_d(i_sigma2), sigma_sqr_r(i_sigma2));
+    
+    % Compute the bit error rate using Monte-Carlo simulation
+    BER_MC{i_sigma2} = zeros(M, 3);
+    %BER_MC{i_sigma2}(:, 1) = get_BER(constellation, map_noncore, beta_sr, beta_rd, g(i_sigma2), sigma_sqr_d(i_sigma2), sigma_sqr_r(i_sigma2), N);
+    %BER_MC{i_sigma2}(:, 2) = get_BER(constellation, map_seddik, beta_sr, beta_rd, g(i_sigma2), sigma_sqr_d(i_sigma2), sigma_sqr_r(i_sigma2), N);
+    %BER_MC{i_sigma2}(:, 3) = get_BER(constellation, map_QAP{i_sigma2}, beta_sr, beta_rd, g(i_sigma2), sigma_sqr_d(i_sigma2), sigma_sqr_r(i_sigma2), N);
+    
+    toc;
+    disp(['BER simulation for 1/sigma2 = ', num2str(dB_inv_sigma2(i_sigma2)), 'dB completed.'])
+    disp([' - BER upper bounds, non-CoRe: ', num2str(BER_analytical{i_sigma2}(:, 1)')])
+    disp([' - BER upper bounds, Seddik: ', num2str(BER_analytical{i_sigma2}(:, 2)')])
+    disp([' - BER upper bounds, QAP: ', num2str(BER_analytical{i_sigma2}(:, 3)')])
+    disp([' - BER emperical, non-CoRe: ', num2str(BER_MC{i_sigma2}(:, 1)')])
+    disp([' - BER emperical, Seddik: ', num2str(BER_MC{i_sigma2}(:, 2)')])
+    disp([' - BER emperical, QAP: ', num2str(BER_MC{i_sigma2}(:, 3)')])
+end
+
+BER_analytical = reshape(cell2mat(BER_analytical), M, 3 * n_sigma2);
+BER_MC = reshape(cell2mat(BER_MC), M, 3 * n_sigma2);
+
+%% Visualization
+% The BER upperbound
+cmap = colormap(hsv(M));
+legend_item = cell(3 * M, 1);
+h = figure;
+for m = 1 : M
+    semilogy(dB_inv_sigma2, BER_analytical(m, 1 : n_sigma2), '-', 'Color', cmap(m, :), 'linewidth', 2), hold on;
+    semilogy(dB_inv_sigma2, BER_analytical(m, n_sigma2 + 1 : 2 * n_sigma2), '^--', 'Color', cmap(m, :), 'linewidth', 2), hold on;
+    semilogy(dB_inv_sigma2, BER_analytical(m, 2 * n_sigma2 + 1 : 3 * n_sigma2), 'o-.', 'Color', cmap(m, :), 'linewidth', 2), hold on;
+
+    legend_item{3 * m - 2} = ['Non-CoRe, M = ', num2str(m)];
+    legend_item{3 * m - 1} = ['Seddik, M = ', num2str(m)];
+    legend_item{3 * m} = ['MoDiv, M = ', num2str(m)];
+end
+grid on;
+set(gca, 'Fontsize', 18);
+xlabel('1/\sigma^2(dB)'), ylabel('BER');
+legend(legend_item);
+saveas(h, 'BER_SNR_upperbound.fig');
+
+%% The empirical BER
+h = figure;
+for m = 1 : M
+    semilogy(dB_inv_sigma2, BER_MC(m, 1 : n_sigma2), '-', 'Color', cmap(m, :), 'linewidth', 2), hold on;
+    semilogy(dB_inv_sigma2, BER_MC(m, n_sigma2 + 1 : 2 * n_sigma2), '^--', 'Color', cmap(m, :), 'linewidth', 2), hold on;
+    semilogy(dB_inv_sigma2, BER_MC(m, 2 * n_sigma2 + 1 : 3 * n_sigma2), 'o-.', 'Color', cmap(m, :), 'linewidth', 2), hold on;
+
+    legend_item{3 * m - 2} = ['Non-CoRe, M = ', num2str(m)];
+    legend_item{3 * m - 1} = ['Seddik, M = ', num2str(m)];
+    legend_item{3 * m} = ['MoDiv, M = ', num2str(m)];
+end
+grid on;
+set(gca, 'Fontsize', 18);
+xlabel('1/\sigma^2(dB)'), ylabel('BER');
+legend(legend_item);
+saveas(h, 'BER_SNR_MonteCarlo.fig');

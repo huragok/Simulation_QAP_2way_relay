@@ -334,7 +334,8 @@ void tabu_search(int64_T n,
                 {
                     best_sol[k] = p[k];
                 }
-                mexPrintf("Solution of the value %f found at iter. %f\n", (double)(best_cost), (double)(current_iteration));
+                // Uncomment the next line to prompt to matlab command window when ever a better solution is achieved.
+                // mexPrintf("Solution of the value %f found at iter. %f\n", (double)(best_cost), (double)(current_iteration));
             }
 
             // update matrix of the move costs
