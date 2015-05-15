@@ -2,12 +2,10 @@ clear all;
 close all;
 clc;
 
-addpath('../functions');
+addpath('./functions');
 
 %% 0. Load the data file that contains the test result
-%load('Test_2015514194827322.mat') % 16QAM
-%load('Test_20155141952256.MAT') % 32QAM
-load('Test_201551420259238.MAT') % 64QAM
+load('Test_201551510363617.MAT') % 16QAM
 
 
 %% 1. Simulation settings
@@ -15,9 +13,8 @@ N = 1E6; % Number of monte-carlo run
 
 Nbps = test_cases(1).param_origin.Nbps;
 type_mod = test_cases(1).param_origin.type_mod;
-pwr = 1; 
 
-Pr = test_cases(1).param_origin.Pr; % Power at the relay
+p_Pr = test_cases(1).param_origin.p_Pr; % Power at the relay
 d1 = test_cases(1).param_origin.d1; % Distance between S and R
 d2 = test_cases(1).param_origin.d2; % Distance between R and D
 nu = test_cases(1).param_origin.nu; % Pathloss factor
@@ -31,7 +28,9 @@ end
 
 %% 2. Initialization
 Q = 2 ^ Nbps;
-constellation = get_constellation(Nbps, type_mod, pwr);
+Pr = 4 * p_Pr;
+Pt = 2 * (1 - p_Pr);
+constellation = sqrt(Pt) * get_constellation(Nbps, type_mod, 1);
 
 sigma_sqr = 10 .^ (-dB_inv_sigma2 / 10); % The noise covariance at all nodes
 sigma_sqr_d = sigma_sqr;
@@ -40,7 +39,7 @@ sigma_sqr_r = sigma_sqr;
 beta_sr = d1 ^ -nu;
 beta_rd = d2 ^ -nu;
 
-g = sqrt(Pr ./ (beta_sr + beta_rd + sigma_sqr_r)); % The power normalization factor
+g = sqrt(Pr ./ (beta_sr * Pt + beta_rd * Pt + sigma_sqr_r)); % The power normalization factor
 
 map_noncore = get_map_noncore(Q, M);
 map_seddik = get_map_seddik(Q, M);
@@ -55,6 +54,7 @@ BER_MC = cell(n_sigma2, 1);
 
 for i_sigma2 = 1 : n_sigma2
     tic
+
     % Compute the bit error rate using our analytical upper bound
     BER_analytical{i_sigma2} = zeros(M, 3);
     BER_analytical{i_sigma2}(:, 1) = get_BER_upper_bound(constellation, map_noncore, beta_sr, beta_rd, g(i_sigma2), sigma_sqr_d(i_sigma2), sigma_sqr_r(i_sigma2));
@@ -97,8 +97,8 @@ end
 grid on;
 set(gca, 'Fontsize', 18);
 xlabel('1/\sigma^2(dB)'), ylabel('BER');
-legend(legend_item);
-saveas(h, 'BER_SNR_upperbound.fig');
+legend(legend_item, 'Location', 'eastoutside');
+saveas(h, ['BER_noise_power_upperbound_', num2str(Q), 'QAM.fig']);
 
 %% The empirical BER
 h = figure;
@@ -114,5 +114,5 @@ end
 grid on;
 set(gca, 'Fontsize', 18);
 xlabel('1/\sigma^2(dB)'), ylabel('BER');
-legend(legend_item);
-saveas(h, 'BER_SNR_MonteCarlo.fig');
+legend(legend_item, 'Location', 'eastoutside');
+saveas(h, ['BER_noise_power_MonteCarlo_', num2str(Q), 'QAM.fig']);

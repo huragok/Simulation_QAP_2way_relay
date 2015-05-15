@@ -8,7 +8,7 @@ addpath('./functions');
 
 %% 1. Simulation settings
 % Constellation specification
-Nbps = 6;
+Nbps = 4;
 type_mod = 'QAM';
 
 % Node S, R, D power, channel power and noise power specification
@@ -21,7 +21,7 @@ type_mod = 'QAM';
 % transmissions
 
 dB_inv_sigma2 = 16 : 2 : 30; % 1/sigma2 in dB
-Pr = 2; % Power at the relay
+p_Pr = 0.5; % this portion of the total power of 4 is allocated to the relay. The rest are divided eqaully between the 2 end nodes
 d = [0.5, 0.5]; % Distance between S and R, R and D
 
 nu = 3; % Pathloss factor
@@ -31,7 +31,7 @@ epsilon = 0.01; % Tolerance to control the error of scaling the 2 cost matrices 
 n_itr = 1000000; % Number of iterations for the tabu QAP solver
 
 %% 2. Initialization: generate and save all test cases
-test_cases = construct_test_cases(Nbps, type_mod, dB_inv_sigma2, Pr, d, nu, M, true);
+test_cases = construct_test_cases(Nbps, type_mod, dB_inv_sigma2, p_Pr, d, nu, M, true);
 n_case = length(test_cases);
 time_step = regexprep(num2str(clock),'[^\w'']',''); % The time step used to label all saved files as a suffix
 
@@ -79,8 +79,3 @@ for i_case = 1 : n_case
     save(['Test_', time_step, '.mat'], 'test_cases');
     disp(['Test case ', num2str(i_case), '/', num2str(n_case), ' saved.']);
 end
-
-
-
-
-
