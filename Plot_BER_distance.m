@@ -5,8 +5,9 @@ clc;
 addpath('./functions');
 
 %% 0. Load the data file that contains the test result
-load('Test_20155151047165.MAT') % 16QAM
-
+%load('Test_20155151047165.MAT') % 16QAM
+%load('Test_2015515151135129') % 32QAM
+load('Test_2015515151926779') % 64QAM
 
 %% 1. Simulation settings
 N = 1E6; % Number of monte-carlo run
