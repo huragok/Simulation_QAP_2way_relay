@@ -20,7 +20,7 @@ type_mod = 'QAM';
 % We also assume that the channel and noise are stationary across
 % transmissions
 
-dB_inv_sigma2 = 30; % 1/sigma2 in dB
+dB_inv_sigma2 = 16 : 2 : 30; % 1/sigma2 in dB
 Pr = 2; % Power at the relay
 d = [0.5, 0.5]; % Distance between S and R, R and D
 
@@ -28,7 +28,7 @@ nu = 3; % Pathloss factor
 M = 4; % Number of retransmission
 
 epsilon = 0.01; % Tolerance to control the error of scaling the 2 cost matrices to integer
-n_itr = 100000; % Number of iterations for the tabu QAP solver
+n_itr = 1000; % Number of iterations for the tabu QAP solver
 
 %% 2. Initialization: generate and save all test cases
 test_cases = construct_test_cases(Nbps, type_mod, dB_inv_sigma2, Pr, d, nu, M, true);
@@ -58,14 +58,14 @@ for i_case = 1 : n_case
     for m = 2 : test_cases(i_case).param_origin.M
         
         % Save the two 2-D cost matrices of the QAP-KB problem
-        filename = ['test_case', num2str(i_case), '_', num2str(m) , '_', time_step, '.mat'];
-        save(filename, 'xpcd_PBER', 'E');
+        %filename = ['test_case', num2str(i_case), '_', num2str(m) , '_', time_step, '.mat'];
+        %save(filename, 'xpcd_PBER', 'E');
 
         % Put the QAP solver here, currently we use a place holder which
         % returns gray mapping only. Save the resulting map also to the
         % structure
   
-        map = solve_QAP(xpcd_PBER, E, pow10_xpcd_PBER, pow10_E, n_itr);
+        map = solve_QAP_tabu(xpcd_PBER, E, pow10_xpcd_PBER, pow10_E, n_itr);
         test_cases(i_case).map(m - 1, :) = map;
         
         % Update the expected PBER

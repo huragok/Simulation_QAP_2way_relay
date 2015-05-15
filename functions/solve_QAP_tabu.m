@@ -33,7 +33,7 @@ f_int = int64(round(f * 10 ^ pow10_f)); % Convert the flow matrix to integer
 d_int = int64(round(d * 10 ^ pow10_d)); % Convert the distanve matrix to integer
 n_itr = int64(n_itr);%
 
-if max(f_int) > MAX_LONG || max(d_int) > MAX_LONG % Check whether the scaling is out of range
+if (max(max(f_int)) > MAX_LONG) || (max(max(d_int)) > MAX_LONG) % Check whether the scaling is out of range
     error('Integer out of c++ range!');
 end
 

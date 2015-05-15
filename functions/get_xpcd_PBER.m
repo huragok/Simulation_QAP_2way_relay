@@ -4,14 +4,14 @@ function xpcd_PBER_new = get_xpcd_PBER(xpcd_PBER, E, map)
 %   round of retransmission
 % _________________________________________________________________________
 %	Inputs:
-%       xpcd_PBER:          1-by-Q^2 matrix, the original expected pairwise
+%       xpcd_PBER:          Q-by-Q matrix, the original expected pairwise
 %                           bit error rate in row major order
-%       E:                  1-by-Q^2 matrix, the updating matrix in row
+%       E:                  Q-by-Q matrix, the updating matrix in row
 %                           major order.
-%       map:                1-by-Q vector, how does the Q indices are 
+%       map:                Q-by-Q vector, how does the Q indices are 
 %                           mapped to constellation points
 %	Outputs:
-%       xpcd_PBER_new:      1-by-Q^2 matrix, the updated expected pairwise
+%       xpcd_PBER_new:      Q-by-Q matrix, the updated expected pairwise
 %                           bit error rate in row major order
 % _________________________________________________________________________
 % Author: Wenhao Wu
@@ -21,12 +21,12 @@ function xpcd_PBER_new = get_xpcd_PBER(xpcd_PBER, E, map)
 % _________________________________________________________________________
 
 Q = length(map);
-xpcd_PBER_new = zeros(1, Q ^ 2);
+xpcd_PBER_new = zeros(Q, Q);
 
 for p = 1 : Q
     for q = 1 : Q
         if p ~= q
-            xpcd_PBER_new((p - 1) * Q + q) = xpcd_PBER((p - 1) * Q + q) * E((map(p) - 1) * Q + map(q));
+            xpcd_PBER_new(p, q) = xpcd_PBER(p, q) * E(map(p), map(q));
         end
     end
 end
