@@ -5,12 +5,14 @@ clc;
 addpath('./functions');
 
 %% 0. Load the data file that contains the test result
-%load('Test_20155151047165.MAT') % 16QAM
-%load('Test_2015515151135129') % 32QAM
-load('Test_2015515151926779') % 64QAM
+load('Test_2015515185713909.MAT') % 16QAM
+%load('Test_201551519134039.MAT') % 32QAM
+%load('Test_201551519847716') % 64QAM
 
 %% 1. Simulation settings
-N = 1E6; % Number of monte-carlo run
+N_batch = 1; % Number of batches,
+N_per_batch = 1e6; % Number of monte-carlo run per batch, restricted by memory size
+seed = 8;
 
 Nbps = test_cases(1).param_origin.Nbps;
 type_mod = test_cases(1).param_origin.type_mod;
@@ -64,12 +66,12 @@ for i_d = 1 : n_d
     
     % Compute the bit error rate using Monte-Carlo simulation
     BER_MC{i_d} = zeros(M, 3);
-    %BER_MC{i_d}(:, 1) = get_BER(constellation, map_noncore, beta_sr(i_d), beta_rd(i_d), g(i_d), sigma_sqr_d, sigma_sqr_r, N);
-    %BER_MC{i_d}(:, 2) = get_BER(constellation, map_seddik, beta_sr(i_d), beta_rd(i_d), g(i_d), sigma_sqr_d, sigma_sqr_r, N);
-    %BER_MC{i_d}(:, 3) = get_BER(constellation, map_QAP{i_d}, beta_sr(i_d), beta_rd(i_d), g(i_d), sigma_sqr_d, sigma_sqr_r, N);
+    BER_MC{i_d}(:, 1) = get_BER(constellation, map_noncore, beta_sr(i_d), beta_rd(i_d), g(i_d), sigma_sqr_d, sigma_sqr_r, N_per_batch, N_batch, seed);
+    BER_MC{i_d}(:, 2) = get_BER(constellation, map_seddik, beta_sr(i_d), beta_rd(i_d), g(i_d), sigma_sqr_d, sigma_sqr_r, N_per_batch, N_batch, seed);
+    BER_MC{i_d}(:, 3) = get_BER(constellation, map_QAP{i_d}, beta_sr(i_d), beta_rd(i_d), g(i_d), sigma_sqr_d, sigma_sqr_r, N_per_batch, N_batch, seed);
     
     toc;
-    disp(['Distance (source to relay, relay to destination) = (', num2str(d1(i_d)), ',', num2str(d2(i_d)), ') dB completed.'])
+    disp(['Distance (source to relay, relay to destination) = (', num2str(d1(i_d)), ',', num2str(d2(i_d)), ') completed.'])
     disp([' - BER upper bounds, non-CoRe: ', num2str(BER_analytical{i_d}(:, 1)')])
     disp([' - BER upper bounds, Seddik: ', num2str(BER_analytical{i_d}(:, 2)')])
     disp([' - BER upper bounds, QAP: ', num2str(BER_analytical{i_d}(:, 3)')])

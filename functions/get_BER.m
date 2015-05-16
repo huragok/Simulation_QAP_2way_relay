@@ -1,5 +1,5 @@
-function BER = get_BER(constellation, map, beta_sr, beta_rd, g, sigma_sqr_d, sigma_sqr_r, N)
-%   BER = get_BER(constellation, map, beta_sr, beta_rd, g, sigma_sqr_d, sigma_sqr_r, N)
+function BER = get_BER(constellation, map, beta_sr, beta_rd, g, sigma_sqr_d, sigma_sqr_r, N_per_batch, N_batch, seed)
+%   BER = get_BER(constellation, map, beta_sr, beta_rd, g, sigma_sqr_d, sigma_sqr_r, N_per_batch, N_batch, seed)
 %   Get the BER by actually running Monte-Carlo simulation on the ML
 %   demodulators
 % _________________________________________________________________________
@@ -14,7 +14,10 @@ function BER = get_BER(constellation, map, beta_sr, beta_rd, g, sigma_sqr_d, sig
 %       sigma_sqr_d:    Scalar, the variance of AWGN noise at the
 %                       destination
 %       sigma_sqr_r:    Scalar, the variance of AWGN noise at the relay
-%       N:              Scalar, number of Monte-Carlo run
+%       N_per_batch:    Scalar, number of Monte-Carlo run per batch (size 
+%                       of vectorization)
+%       N_batch:        Scalar, number of batches (for-loop size)
+%       seed:           Scalar, seed for the random number generator
 %	Outputs:
 %		BER:			M-by-1 vector, the BER after each transmission
 % _________________________________________________________________________
@@ -27,19 +30,26 @@ function BER = get_BER(constellation, map, beta_sr, beta_rd, g, sigma_sqr_d, sig
 [M, Q] = size(map);
 Nbps = round(log2(Q)); % Number of bit per symbol
 symbols_mapped = constellation(map); % The mapped symbols at all transmissions
-p = randi(Q, 1, N); % Generate the random transmitted index
-d = zeros(Q, N); % The distance measurement used for the ML demodulator
+
+BER = zeros(M, N_batch);
 B = get_hamming_dist(Nbps); % The hamming distance matrix
 
-BER = zeros(M, 1);
-for m = 1 : M
-    h_sr = sqrt(beta_sr / 2) * (randn(1, N) + 1i * randn(1, N)); % Generate the Rayleigh channel, We expect N to be large so inorder to cut memory usage we generate the random channel/noise once for each transmission
-    h_rd = sqrt(beta_rd / 2) * (randn(1, N) + 1i * randn(1, N));
-    symbol = symbols_mapped(m, p); % Generate the random symbol
-    
-    y = g * h_rd .* (h_sr .* symbol + sqrt(sigma_sqr_r / 2) * (randn(1, N) + 1i * randn(1, N))) + sqrt(sigma_sqr_d / 2) * (randn(1, N) + 1i * randn(1, N));
-    
-    d = d + abs(repmat(y, Q, 1) - g * symbols_mapped(m, :).' * (h_rd .* h_sr)) .^ 2 ./ repmat(sigma_sqr_d + g ^ 2 * sigma_sqr_r * abs(h_rd) .^ 2, Q, 1); % Compute the ML measurement: the weighted distance square between the received signal and the Q symbols for each of N realization
-    [~, p_demod] = min(d, [], 1);
-    BER(m) = mean(B((p_demod - 1) * Q + p)) / Nbps; % BER for the m-th transmission
+rng(seed);
+for i_batch = 1 : N_batch
+    p = randi(Q, 1, N_per_batch); % Generate the random transmitted index
+    d = zeros(Q, N_per_batch); % The distance measurement used for the ML demodulator
+
+    for m = 1 : M
+        h_sr = sqrt(beta_sr / 2) * (randn(1, N_per_batch) + 1i * randn(1, N_per_batch)); % Generate the Rayleigh channel, We expect N to be large so inorder to cut memory usage we generate the random channel/noise once for each transmission
+        h_rd = sqrt(beta_rd / 2) * (randn(1, N_per_batch) + 1i * randn(1, N_per_batch));
+        symbol = symbols_mapped(m, p); % Generate the random symbol
+
+        y = g * h_rd .* (h_sr .* symbol + sqrt(sigma_sqr_r / 2) * (randn(1, N_per_batch) + 1i * randn(1, N_per_batch))) + sqrt(sigma_sqr_d / 2) * (randn(1, N_per_batch) + 1i * randn(1, N_per_batch));
+
+        d = d + abs(repmat(y, Q, 1) - g * symbols_mapped(m, :).' * (h_rd .* h_sr)) .^ 2 ./ repmat(sigma_sqr_d + g ^ 2 * sigma_sqr_r * abs(h_rd) .^ 2, Q, 1); % Compute the ML measurement: the weighted distance square between the received signal and the Q symbols for each of N realization
+        [~, p_demod] = min(d, [], 1);
+        BER(m, i_batch) = mean(B((p_demod - 1) * Q + p)) / Nbps; % BER for the m-th transmission
+    end
 end
+
+BER = mean(BER, 2);
