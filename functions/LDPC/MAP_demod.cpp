@@ -99,25 +99,24 @@ inline double jacln(double x, double y)
 //[4] matlab function written by Mingxi Wang. LextDemodulation = MAP_demodulate(y, LextC, chnl_eq, 2*variance, bit_mat_anti, sym_mod_mat, Nr, Ns, Ntime, M); 
 void MAP_demod_c(double *LextDemodulation, complex <double> *rx_signal, complex <double> *chnl_eq, double *bit_mat_anti, double *prio_LLR_vec, complex <double> *sym_mod_mat, double noise_power, int M, int Nbps, int n_symbol)
 {
-	int i, j, k, row_index, col_index;
-	int block_index, time_index, bit_index_c, bit_index_mex;
-	int Ns_K_Mc, Q;
-	double Le_p1_tmp1, Le_p1_tmp2, Log_sum_p1, sum_exp_p1; 
-	double Le_n1_tmp1, Le_n1_tmp2, Log_sum_n1, sum_exp_n1; 
+	int i, j, k;
+	int i_symbol;
+	int Q;
+	double Le_p1_tmp1, Le_p1_tmp2, Log_sum_p1; 
+	double Le_n1_tmp1, Le_n1_tmp2, Log_sum_n1; 
 	double double_tmp1, double_tmp2, real_tmp, imag_tmp; 
 	complex <double> cmplx_tmp, cmplx_tmp1;
     complex <double> *chnl_sym_mod;
 
-	Ns_K_Mc = Ns*K*Mc;
     Q = int(pow(2.0, Nbps));
     chnl_sym_mod = new complex <double> [M * Q]; // Channel multiplied by each of the Q symbols, M-by-Q matrix
 
-    //calculate h*s, chnl_eq* sym_mod_mat 
+    //calculate h * s, chnl_eq * sym_mod_mat 
 	for(i = 0; i < M; i++)
 	{
         for(j = 0; j < Q; j++)
 		{
-			chnl_sym_mod[i * Q + j] = chnl_eq[i] * sym_mod_mat[j * M + i]
+			chnl_sym_mod[i * Q + j] = chnl_eq[i] * sym_mod_mat[j * M + i];
 		}
 	}
 	
@@ -234,7 +233,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	chnl_eq_imag = mxGetPi(prhs[1]);
 
 	chnl_eq_cmplx = new complex <double> [M];
-	for(k = 0; k < Nr_K; k++) // convert to complex class with order in C
+	for(k = 0; k < M; k++) // convert to complex class with order in C
 	{
 		chnl_eq_cmplx[k]= complex <double>(chnl_eq_real[k], chnl_eq_imag[k]); 
 	}	
@@ -263,7 +262,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	int nldpc  = int(mxGetN(prhs[3]));
 
 	prio_LLR_vec = new double [n_symbol * Nbps];
-	for(i = 0; i < block_num; i++)
+	for(i = 0; i < n_symbol; i++)
 	{
 		for (j = 0; j < Nbps; j++)
 		{
