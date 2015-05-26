@@ -1,4 +1,9 @@
 //file: Map_demod.cpp
+//description: function of Chase combining HARQ MAP detector, and its mex function 
+//edited by: Wenhao Wu
+//created date: 05/26/15
+
+//replaced file: Map_demod.cpp
 //description: function of MIMO MAP detector, and its mex function 
 //author: Weiliang Zeng
 //created date: 03/01/10
@@ -86,19 +91,17 @@ inline double jacln(double x, double y)
 }
 
 
-// description: function of MIMO MAP detector 
-//LextDemodulation: real extrinsinc LLR in matrix, Ns x Mc*K*L, down first then cross as in matlab mex function
-//rx_signal: received signal y = Hs+n, Nr*K x L, L is number of blocks
-//chnl_eq: equivalent channel matrix, He = H*G: Nr*K x Ns*K, 
-//bit_mat_anti:antipodal matrix of bit vectors,2^Ns*Mc*K x Ns*Mc*K, logic 1 is mapped to -1, and logic 0 is mapped to 1
-//prio_LLR_vec: prio information La(b) of multiple bit streams in matrix, Ns x Mc*K*L,   
-//sym_mod_mat: matrix of modulated symbols, corresponding to bit_mat_anti, 2^Ns*Mc*K x Ns*k 
+// description: function of Chase combining HARQ MAP detector 
+//LextDemodulation: real extrinsic LLR in vector, 1-by-(Nbps * n_symbol)
+//rx_signal: received signal y = Hs+n, M-by-n_symbol
+//chnl_eq: equivalent channel vector with the noise normalized, M-by-1
+//bit_mat_anti: antipodal matrix of bit vectors,Q-by-Nbps, logic 1 is mapped to -1, and logic 0 is mapped to 1
+//prio_LLR_vec: prior information La(b) of multiple bit streams in vector, 1-by-(Nbps * n_symbol),   
+//sym_mod_mat: matrix of modulated symbols, corresponding to bit_mat_anti, M-by-Q (originally corresponding to Q-by-M)
 //noise power: total noise power
-//Nr: the number of receive antenna
-//Ns: the number of bit streams
-//K: number of temporal vectors in linear precoding 
-//Mc: bit per symbol of modulation
-//block_num: number of blocks of received signal y, L
+//M: number of transmissions
+//Nbps: number of bits per symbol
+//n_symbol: number of blocks of received signal y, L
 //reference:
 //[1]B. Hochwald, "Achieving near-capacity on a multiple-antenna channel",
 //IEEE Transactions on communications, Mar, 2003
@@ -107,7 +110,7 @@ inline double jacln(double x, double y)
 //[3]C.Xiao, and Y.R. Zheng, "on the mutual information and power allocation for vector gaussian channels with finite discrete inputs"
 //[4] matlab function written by Mingxi Wang. LextDemodulation = MAP_demodulate(y, LextC, chnl_eq, 2*variance, bit_mat_anti, sym_mod_mat, Nr, Ns, Ntime, M); 
                 
-void MAP_demod_c(double *LextDemodulation, complex <double> *rx_signal, complex <double> *chnl_eq, double *bit_mat_anti,double *prio_LLR_vec,  complex <double> *sym_mod_mat, double noise_power,   int Nr, int Ns, int K, int Mc, int block_num)
+void MAP_demod_c(double *LextDemodulation, complex <double> *rx_signal, complex <double> *chnl_eq, double *bit_mat_anti,double *prio_LLR_vec,  complex <double> *sym_mod_mat, double noise_power, int M, int Nbps, int n_symbol)
 {
 	int i,j,k, row_index, col_index;
 	int block_index, time_index, bit_index_c, bit_index_mex;
@@ -202,12 +205,12 @@ void MAP_demod_c(double *LextDemodulation, complex <double> *rx_signal, complex 
 }
 
 
-//description: mex function of void MAP_demod_c(double *LextDemodulation, complex <double> *rx_signal, complex <double> *chnl_eq, double *bit_mat_anti,double *prio_LLR_vec,  complex <double> *sym_mod_mat, double noise_power,   int Nr, int Ns, int K, int Mc, int block_num)
+//description: mex function of void MAP_demod_c(double *LextDemodulation, complex <double> *rx_signal, complex <double> *chnl_eq, double *bit_mat_anti,double *prio_LLR_vec,  complex <double> *sym_mod_mat, double noise_power,   int M, int Nbps, int n_symbol)
 // interface between matlab and C program
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
-	int i, j,k;
-	int row_num,col_num;
+	int i, j, k;
+	int row_num, col_num;
 	double *LextDemodulation;
 
 	// check input and output
