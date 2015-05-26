@@ -51,7 +51,7 @@ bits_per_frame = length(H_cols) - length(P_matrix);
 %generate bit vectors and mapped symbols used in MAP detector
 bit_mat = (dec2bin(0 : Q - 1) > '0') + 0;
 bit_mat_anti = 1 - 2 * bit_mat; % antipodal matrix, logic 1 is mapped to 1, and logic 0 is mapped to -1
-sym_mod_mat = constellation(map);
+sym_mod_mat = constellation(map).';
 
 % Generate the channels. Assume a block fading channel which is  stationary
 % within each frame and independently fading across frames

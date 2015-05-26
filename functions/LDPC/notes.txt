@@ -29,3 +29,14 @@ Nr_K
 <<<
 M
 
+>>>
+Ns_K_Mc
+bit_mat_row_num
+<<<
+Nbps
+Q = 2 ^ Nbps
+
+>>>
+block_index
+<<<
+i_symbol

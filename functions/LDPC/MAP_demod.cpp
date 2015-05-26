@@ -22,18 +22,6 @@ using namespace std;
 #define INF  10000  // infinity
 
 // description: return summation of multiplication of two vecters. sum(a(i)*b(i)), i = 1,2...L.  L is the length of vecter a and b
-inline complex <double> vec_sum_mul(complex<double> *vec_a,  complex<double> *vec_b, int L)
-{
-    int i; 
-	complex <double> tmp = complex <double> (0,0);
-	for(i = 0; i < L; i++)
-	{
-          tmp = tmp + vec_a[i]*vec_b[i]; 
-	}
-	return tmp;
-}
-
-// description: return summation of multiplication of two vecters. sum(a(i)*b(i)), i = 1,2...L.  L is the length of vecter a and b
 inline double vec_sum_mul(double*vec_a,  double*vec_b, int L)
 {
     int i; 
@@ -97,7 +85,7 @@ inline double jacln(double x, double y)
 //chnl_eq: equivalent channel vector with the noise normalized, M-by-1
 //bit_mat_anti: antipodal matrix of bit vectors,Q-by-Nbps, logic 1 is mapped to -1, and logic 0 is mapped to 1
 //prio_LLR_vec: prior information La(b) of multiple bit streams in vector, 1-by-(Nbps * n_symbol),   
-//sym_mod_mat: matrix of modulated symbols, corresponding to bit_mat_anti, M-by-Q (originally corresponding to Q-by-M)
+//sym_mod_mat: matrix of modulated symbols, corresponding to bit_mat_anti, Q-by-M
 //noise power: total noise power
 //M: number of transmissions
 //Nbps: number of bits per symbol
@@ -109,99 +97,89 @@ inline double jacln(double x, double y)
 //likelihood information for turbo-mimo systems", IEEE Transactions on vehicular technology, Sep,2008
 //[3]C.Xiao, and Y.R. Zheng, "on the mutual information and power allocation for vector gaussian channels with finite discrete inputs"
 //[4] matlab function written by Mingxi Wang. LextDemodulation = MAP_demodulate(y, LextC, chnl_eq, 2*variance, bit_mat_anti, sym_mod_mat, Nr, Ns, Ntime, M); 
-                
 void MAP_demod_c(double *LextDemodulation, complex <double> *rx_signal, complex <double> *chnl_eq, double *bit_mat_anti, double *prio_LLR_vec, complex <double> *sym_mod_mat, double noise_power, int M, int Nbps, int n_symbol)
 {
-	int i,j,k, row_index, col_index;
+	int i, j, k, row_index, col_index;
 	int block_index, time_index, bit_index_c, bit_index_mex;
-	int Ns_K_Mc, bit_mat_row_num;
+	int Ns_K_Mc, Q;
 	double Le_p1_tmp1, Le_p1_tmp2, Log_sum_p1, sum_exp_p1; 
 	double Le_n1_tmp1, Le_n1_tmp2, Log_sum_n1, sum_exp_n1; 
-	double double_tmp1, real_tmp, imag_tmp; 
+	double double_tmp1, double_tmp2, real_tmp, imag_tmp; 
 	complex <double> cmplx_tmp, cmplx_tmp1;
     complex <double> *chnl_sym_mod;
 
 	Ns_K_Mc = Ns*K*Mc;
-    bit_mat_row_num = int(pow(2.0,Ns_K_Mc));
-    chnl_sym_mod = new complex <double> [Nr*K*bit_mat_row_num];
+    Q = int(pow(2.0, Nbps));
+    chnl_sym_mod = new complex <double> [M * Q]; // Channel multiplied by each of the Q symbols, M-by-Q matrix
 
-    //calculate H*s, chnl_eq* sym_mod_mat 
-	for(i = 0; i< Nr*K; i++)
+    //calculate h*s, chnl_eq* sym_mod_mat 
+	for(i = 0; i < M; i++)
 	{
-          for(j = 0; j < bit_mat_row_num; j++)
-		  {
-                 chnl_sym_mod[i*bit_mat_row_num+j] = vec_sum_mul(chnl_eq+Ns*K*i, sym_mod_mat+Ns*K*j, Ns*K);;
-		  }
+        for(j = 0; j < Q; j++)
+		{
+			chnl_sym_mod[i * Q + j] = chnl_eq[i] * sym_mod_mat[j * M + i]
+		}
 	}
 	
 	//calculate extrinsic LLR of each bit
-	for (block_index = 0; block_index < block_num; block_index++) // the "block_index" th block in rx_signal
+	for (i_symbol = 0; i_symbol < n_symbol; i_symbol++) // the "i_symbol" th symbol in rx_signal
 	{
-	    for (time_index = 0; time_index < K; time_index++) // the "time_index"th vecter in each block
+		for (i = 0; i < Nbps; i++) 
 		{
-            for (i = 0; i < Ns*Mc; i++) 
-			{
-				Log_sum_p1 = double(-INF);
-				Log_sum_n1 = double(-INF);
-				/*sum_exp_p1 = 0; 
-				sum_exp_n1 = 0; */
-				row_index = int (i % Ns) ;
-				col_index = int ((i - row_index) /Ns);
-                bit_index_c = time_index*Ns*Mc + row_index*Mc + col_index; 
-				
-				for(j= 0; j< bit_mat_row_num; j++) //j th row in bit_mat_anti
-				{ 
-					//calculate P(bk=+1|y),when bit value = +1
-					if (int(bit_mat_anti[j*Ns_K_Mc+bit_index_c]) == 1) { // find k th bit bit_mat_anti[j][bit_index_c] = +1 in bit_mat_anti 
-					    //calculate 0.5*b[k]*La[k]
-						Le_p1_tmp1 = vec_sum_mul(bit_mat_anti+Ns_K_Mc*j, prio_LLR_vec +block_index*Ns_K_Mc, Ns_K_Mc); 
-					    Le_p1_tmp1 = Le_p1_tmp1 - bit_mat_anti[j*Ns_K_Mc+bit_index_c]*prio_LLR_vec[block_index*Ns_K_Mc+bit_index_c];	
-						Le_p1_tmp1 = Le_p1_tmp1 /2;
-						////calculate -||y- H*s||^2/sigma^2
-                        Le_p1_tmp2 = 0;
-						for(k = 0; k< Nr*K; k++)
-						{
-						    cmplx_tmp = rx_signal[k*block_num + block_index] - chnl_sym_mod[k*bit_mat_row_num+j]; //y(k)- H*s 
-                            real_tmp = real(cmplx_tmp);
-							imag_tmp = imag(cmplx_tmp);
-							double_tmp1 = real_tmp*real_tmp + imag_tmp *imag_tmp ; //|y(k)- H*s|^2
-							Le_p1_tmp2 = Le_p1_tmp2 + double_tmp1; 
-						}
-						Le_p1_tmp2 = -Le_p1_tmp2/noise_power; 
-                        Le_p1_tmp1 = Le_p1_tmp1+ Le_p1_tmp2;
-						//sum_exp_p1 = sum_exp_p1 + exp(Le_p1_tmp1); // sum(exp(-|| y - H*s||^2 + 0.5*b*La))
-						Log_sum_p1 = jacln(Log_sum_p1, Le_p1_tmp1);  // jacobian logarithm, log(e^Log_sum_p1, e^Le_p1_tmp1);
+			Log_sum_p1 = double(-INF);
+			Log_sum_n1 = double(-INF);
+			
+			for(j = 0; j < Q; j++) //j-th row in bit_mat_anti
+			{ 
+				//calculate P(bk=+1|y),when bit value = +1
+				if (int(bit_mat_anti[j * Nbps + i]) == 1) { // find k th bit bit_mat_anti(j, i) = +1 in bit_mat_anti 
+					//calculate 0.5*x[k]*La[k]
+					Le_p1_tmp1 = vec_sum_mul(bit_mat_anti + Nbps * j, prio_LLR_vec + i_symbol * Nbps, Nbps); 
+					Le_p1_tmp1 = Le_p1_tmp1 - bit_mat_anti[j * Nbps + i] * prio_LLR_vec[i_symbol * Nbps + i];	
+					Le_p1_tmp1 = Le_p1_tmp1 / 2;
+					////calculate -||y- h.*s||^2/sigma^2
+					Le_p1_tmp2 = 0;
+					for(k = 0; k < M; k++)
+					{
+						cmplx_tmp = rx_signal[k * n_symbol + i_symbol] - chnl_sym_mod[k * Q + j]; //y(k)- h(k) * s(k) 
+						real_tmp = real(cmplx_tmp);
+						imag_tmp = imag(cmplx_tmp);
+						double_tmp1 = real_tmp * real_tmp + imag_tmp * imag_tmp ; // |y(k)- h(k) * s(k)|^2
+						Le_p1_tmp2 = Le_p1_tmp2 + double_tmp1; 
 					}
-					else if (int(bit_mat_anti[j*Ns_K_Mc+bit_index_c]) == -1) { //find k th bit bit_mat_anti[j][bit_index_c] = -1 in bit_mat_anti 
-						////calculate 0.5*b[k]*La[k]
-						Le_n1_tmp1 = vec_sum_mul(bit_mat_anti+Ns_K_Mc*j, prio_LLR_vec +block_index*Ns_K_Mc, Ns_K_Mc); 
-					    Le_n1_tmp1 = Le_n1_tmp1 - bit_mat_anti[j*Ns_K_Mc+bit_index_c]*prio_LLR_vec[block_index*Ns_K_Mc+bit_index_c];	
-						Le_n1_tmp1 = Le_n1_tmp1 /2;
-						//////calculate -||y- H*s||^2/sigma^2
-                        Le_n1_tmp2 = 0;
-						for(k = 0; k< Nr*K; k++)
-						{
-						    cmplx_tmp = rx_signal[k*block_num + block_index] - chnl_sym_mod[k*bit_mat_row_num+j]; //y(k)- H*s 
-							real_tmp = real(cmplx_tmp);
-							imag_tmp = imag(cmplx_tmp);
-							double_tmp1 = real_tmp*real_tmp + imag_tmp *imag_tmp ; //|y(k)- H*s|^2
-							Le_n1_tmp2 = Le_n1_tmp2 + double_tmp1; 
-						}
-						Le_n1_tmp2 = -Le_n1_tmp2/noise_power; 
-						Le_n1_tmp1 = Le_n1_tmp1+ Le_n1_tmp2;
-						//sum_exp_n1 = sum_exp_n1 + exp(Le_n1_tmp1);  // sum(exp(-|| y - H*s||^2 + 0.5*b*La))
-						Log_sum_n1 = jacln(Log_sum_n1, Le_n1_tmp1);  // jacobian logarithm, log(e^Log_sum_p1, e^Le_p1_tmp1);
-					}	
-	            }
-				//Log_sum_p1 = log(sum_exp_p1); // sum(exp(-|| y - H*s||^2 + 0.5*b*La)) for bit = +1
-	   //         Log_sum_n1 = log(sum_exp_n1); // sum(exp(-|| y - H*s||^2 + 0.5*b*La)) for bit = -1
+					Le_p1_tmp2 = -Le_p1_tmp2 / noise_power; 
+					Le_p1_tmp1 = Le_p1_tmp1 + Le_p1_tmp2;
+					Log_sum_p1 = jacln(Log_sum_p1, Le_p1_tmp1);  // jacobian logarithm, log(e^Log_sum_p1, e^Le_p1_tmp1);
+				}
+				else if (int(bit_mat_anti[j * Nbps + i]) == -1) { // find k th bit bit_mat_anti(j, i) = -1 in bit_mat_anti 
+					////calculate 0.5*x[k]*La[k]
+					Le_n1_tmp1 = vec_sum_mul(bit_mat_anti + Nbps * j, prio_LLR_vec + i_symbol * Nbps, Nbps); 
+					Le_n1_tmp1 = Le_n1_tmp1 - bit_mat_anti[j * Nbps + i] * prio_LLR_vec[i_symbol * Nbps + i];	
+					Le_n1_tmp1 = Le_n1_tmp1 / 2;
+					////calculate -||y- h.*s||^2/sigma^2
+					Le_n1_tmp2 = 0;
+					for(k = 0; k < M; k++)
+					{
+						cmplx_tmp = rx_signal[k * n_symbol + i_symbol] - chnl_sym_mod[k * Q + j]; //y(k)- h(k) * s(k)
+						real_tmp = real(cmplx_tmp);
+						imag_tmp = imag(cmplx_tmp);
+						double_tmp2 = real_tmp * real_tmp + imag_tmp * imag_tmp ; // |y(k)- h(k) * s(k)|^2
+						Le_n1_tmp2 = Le_n1_tmp2 + double_tmp2; 
+					}
+					Le_n1_tmp2 = -Le_n1_tmp2 / noise_power; 
+					Le_n1_tmp1 = Le_n1_tmp1 + Le_n1_tmp2;
+					//sum_exp_n1 = sum_exp_n1 + exp(Le_n1_tmp1);  // sum(exp(-|| y - H*s||^2 + 0.5*b*La))
+					Log_sum_n1 = jacln(Log_sum_n1, Le_n1_tmp1);  // jacobian logarithm, log(e^Log_sum_p1, e^Le_p1_tmp1);
+				}	
+			}
+			//Log_sum_p1 = log(sum_exp_p1); // sum(exp(-|| y - H*s||^2 + 0.5*b*La)) for bit = +1
+   //         Log_sum_n1 = log(sum_exp_n1); // sum(exp(-|| y - H*s||^2 + 0.5*b*La)) for bit = -1
 
-				bit_index_mex = block_index*Ns_K_Mc + time_index*Ns*Mc+ col_index*Ns+row_index; // down first, then cross, 2D array as stored in matlab mex 		
-				LextDemodulation[bit_index_mex] = Log_sum_p1 - Log_sum_n1 ; //  			
-			}	
-		}
+			//bit_index_mex = i_symbol * Nbps + time_index*Ns*Mc+ col_index*Ns+row_index; // down first, then cross, 2D array as stored in matlab mex 		
+			LextDemodulation[i_symbol * Nbps + i] = Log_sum_p1 - Log_sum_n1; //  			
+		}	
 	}
-
+	return;
 }
 
 
@@ -300,12 +278,12 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	sym_mod_mat_real = mxGetPr(prhs[4]);     
 	sym_mod_mat_imag = mxGetPi(prhs[4]);	
 
-	sym_mod_mat_cmplx = new complex <double> [M * Q];
-    for(i = 0; i < Q; i++)   // convert to complex class
+	sym_mod_mat_cmplx = new complex <double> [Q * M];
+    for(i = 0; i < M; i++)   // convert to complex class
 	{
-		for(k = 0; k < M; k++)
+		for(k = 0; k < Q; k++)
 		{
-			sym_mod_mat_cmplx[k * Q + i]= complex <double>(sym_mod_mat_real[i * M + k], sym_mod_mat_imag[i * M + k]); 
+			sym_mod_mat_cmplx[k * M + i]= complex <double>(sym_mod_mat_real[i * Q + k], sym_mod_mat_imag[i * Q + k]); 
 		}	
 	}
 
