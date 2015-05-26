@@ -50,11 +50,8 @@ bits_per_frame = length(H_cols) - length(P_matrix);
 
 %generate bit vectors and mapped symbols used in MAP detector
 bit_mat = (dec2bin(0 : Q - 1) > '0') + 0;
+bit_mat_anti = 1 - 2 * bit_mat; % antipodal matrix, logic 1 is mapped to 1, and logic 0 is mapped to -1
 sym_mod_mat = constellation(map);
-for i = 1 : d
-    bit_mat_tmp = reshape(bit_mat(:,(i - 1) * Nbps + 1 : i * Nbps)', 1, Nbps * 2 ^ (Nbps * d)); 
-    sym_mod_mat(:, i) = modulate(h, bit_mat_tmp') / norm_pow; %2^Ns*Mc*K x Ns*K
-end
 
 % Generate the channels. Assume a block fading channel which is  stationary
 % within each frame and independently fading across frames
@@ -73,10 +70,10 @@ for i = 1 : max_frame
 	
 	% source, coding, random interlever and modulation
 
-    data = round(rand(1, bits_per_frame)); % Randomly generated information-bearing bit, d-by-bits_per_frame
-    codewordTemp = LdpcEncode(data, H_rows, P_matrix ); % LDPC encoded codeword, length = nldpc
-    codeword_invTemp = randintrlv(codewordTemp, 0);  % Interleaved codeword, length = nldpc
-    coded_index = bit2idx(codeword_invTemp);
+    data = round(rand(1, bits_per_frame)); % Randomly generated information-bearing bit, 1-by-bits_per_frame
+    codewordTemp = LdpcEncode(data, H_rows, P_matrix ); % LDPC encoded codeword, 1-by-nldpc
+    codeword_invTemp = randintrlv(codewordTemp, 0);  % Interleaved codeword, 1-by-nldpc
+    coded_index = bit2idx(codeword_invTemp, Nbps);
 
     transmit_Mod = zeros(M, ceil(nldpc / Nbps)); % Modulated symbol for each (re)transmission
     for m = 1 : M % 
@@ -105,7 +102,7 @@ for i = 1 : max_frame
 		error_perFrame_perMS = zeros(iter_max, 1);
 		for iter = 1 : iter_max
 
-            LextDemodulation = MAP_demod(y(1 : m, :), chnl_eq(1 : m), bit_mat_anti, LextC, sym_mod_mat, 1.0);
+            LextDemodulation = MAP_demod(y(1 : m, :), chnl_eq(1 : m), bit_mat_anti, LextC, sym_mod_mat(1 : m, :), 1.0);
 
             LextDemo_deinv = randdeintrlv(LextDemodulation, 0); %de-interleave
             [LLR_output_tmp, errors] = MpDecode(LextDemo_deinv, H_rows, H_cols, max_iterations, decoder_type, 1, 1, data); %ldpc decoder

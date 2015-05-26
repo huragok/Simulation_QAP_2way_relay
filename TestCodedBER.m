@@ -6,10 +6,10 @@ addpath('./functions');
 addpath('./functions/LDPC');
 
 %% 1. Simulation settings
-Nbps = 6; % 4, 5, 6
+Nbps = 4; % 4, 5, 6
 type_mod = 'QAM';
 
-dB_inv_sigma2 = 12 : 2 : 26; % 1/sigma2 in dB
+dB_inv_sigma2 = 14; % 1/sigma2 in dB
 p_Pr = 0.5; % this portion of the total power of 4 is allocated to the relay. The rest are divided eqaully between the 2 end nodes
 d = [0.5, 0.5]; % Distance between S and R, R and D
 
@@ -38,20 +38,19 @@ beta_rd = d(2) ^ -nu;
 
 g = sqrt(Pr ./ (beta_sr * Pt + beta_rd * Pt + sigma_sqr_r)); % The power normalization factor
 
-map_noncore = get_map_noncore(Q, M);
+map_seddik = get_map_seddik(Q, M);
 
 %% 3. Not let us test the coded bit error rate
 BER_coded = zeros(M, n_sigma2);
 
 for i_sigma2 = 1 : n_sigma2
     tic
-
     % Compute the bit error rate using Monte-Carlo simulation
-    BER_coded(:, i_sigma2) = get_codedBER(constellation, map_noncore, beta_sr, beta_rd, g(i_sigma2), sigma_sqr_d(i_sigma2), sigma_sqr_r(i_sigma2), max_frame, iter_max, coding_rate, nldpc, seed);
+    BER_coded(:, i_sigma2) = get_codedBER(constellation, map_seddik, beta_sr, beta_rd, g(i_sigma2), sigma_sqr_d(i_sigma2), sigma_sqr_r(i_sigma2), max_frame, iter_max, coding_rate, nldpc, seed);
   
     toc;
     disp(['Coded BER simulation for 1/sigma2 = ', num2str(dB_inv_sigma2(i_sigma2)), 'dB completed.'])
-    disp([' - LDPC coded BER, non-CoRe: ', num2str(BER_coded(:, i_sigma2)')]);
+    disp([' - LDPC coded BER, Seddik: ', num2str(BER_coded(:, i_sigma2)')]);
 end
 
 
