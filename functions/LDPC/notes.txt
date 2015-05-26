@@ -12,7 +12,7 @@ removed (just 1)
 <<<
 L: number of blocks (just n_symbol)
 >>>
-n_symbols: number of symbols per frame
+n_symbol: number of symbols per frame
 
 <<<
 Mc: bit per symbol of modulation
@@ -23,3 +23,9 @@ Nbps: number of bits per symbol
 block_num: number of blocks of received signal y, L
 >>>
 removed (just n_symbols)
+
+>>>
+Nr_K
+<<<
+M
+

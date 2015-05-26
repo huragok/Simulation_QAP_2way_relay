@@ -110,7 +110,7 @@ inline double jacln(double x, double y)
 //[3]C.Xiao, and Y.R. Zheng, "on the mutual information and power allocation for vector gaussian channels with finite discrete inputs"
 //[4] matlab function written by Mingxi Wang. LextDemodulation = MAP_demodulate(y, LextC, chnl_eq, 2*variance, bit_mat_anti, sym_mod_mat, Nr, Ns, Ntime, M); 
                 
-void MAP_demod_c(double *LextDemodulation, complex <double> *rx_signal, complex <double> *chnl_eq, double *bit_mat_anti,double *prio_LLR_vec,  complex <double> *sym_mod_mat, double noise_power, int M, int Nbps, int n_symbol)
+void MAP_demod_c(double *LextDemodulation, complex <double> *rx_signal, complex <double> *chnl_eq, double *bit_mat_anti, double *prio_LLR_vec, complex <double> *sym_mod_mat, double noise_power, int M, int Nbps, int n_symbol)
 {
 	int i,j,k, row_index, col_index;
 	int block_index, time_index, bit_index_c, bit_index_mex;
@@ -205,7 +205,7 @@ void MAP_demod_c(double *LextDemodulation, complex <double> *rx_signal, complex 
 }
 
 
-//description: mex function of void MAP_demod_c(double *LextDemodulation, complex <double> *rx_signal, complex <double> *chnl_eq, double *bit_mat_anti,double *prio_LLR_vec,  complex <double> *sym_mod_mat, double noise_power,   int M, int Nbps, int n_symbol)
+//description: mex function BER = MAP_demod(rx_signal, chnl_eq, bit_mat_anti, LextC, sym_mod_mat, noise_power);
 // interface between matlab and C program
 void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 {
@@ -215,96 +215,82 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 
 	// check input and output
 	// check number of inputs and outputs
-	if (nrhs  != 6){  
+	if (nrhs != 6){  
 		mexErrMsgTxt("number of inputs errors)");
 	}
-	if (nlhs  != 1){
+	if (nlhs > 1){
 		mexErrMsgTxt("number of outputs errors");
 	}
-	////check inputs and outputs are real or complex
-	//if ( (!mxIsComplex(prhs[0]))||(!mxIsComplex(prhs[1]))||(!mxIsComplex(prhs[4])) ){
-	//	mexErrMsgTxt("y, chnl_eq, and sym_mod_mat must be complex");
-	//}
-	//else if( (mxIsComplex(prhs[0]))||(mxIsComplex(prhs[1]))||(mxIsComplex(prhs[4]))) {
-	//	mexErrMsgTxt("bit_mat_anti, LextC and 2*variance must be complex");
-	//}
+	//check inputs and outputs are real or complex
+	if ((!mxIsComplex(prhs[0])) || (!mxIsComplex(prhs[1])) || (!mxIsComplex(prhs[4]))){
+		mexErrMsgTxt("y, chnl_eq, and sym_mod_mat must be complex");
+	}
+	else if((mxIsComplex(prhs[2])) || (mxIsComplex(prhs[3])) || (mxIsComplex(prhs[5]))) {
+		mexErrMsgTxt("bit_mat_anti, LextC and 2*variance must be real");
+	}
 
     //Retrieve the input data 
 	//get rx_signal and convert to matrix order in C language(cross first, then down)
-	int Nr_K, block_num;
-	double *rx_signal_real,*rx_signal_imag;
+	int M, n_symbol;
+	double *rx_signal_real, *rx_signal_imag;
 	complex <double> *rx_signal_cmplx; 
 
 	rx_signal_real = mxGetPr(prhs[0]);     
 	rx_signal_imag = mxGetPi(prhs[0]);
-    Nr_K = int(mxGetM(prhs[0])); //get number of rows
-	block_num  = int(mxGetN(prhs[0]));
-	rx_signal_cmplx = new complex <double> [Nr_K*block_num];
-	for(i= 0; i< block_num; i++)
+    M = int(mxGetM(prhs[0])); //get number of transmissions
+	n_symbol = int(mxGetN(prhs[0]));
+	rx_signal_cmplx = new complex <double> [M * n_symbol];
+	for(i = 0; i < n_symbol; i++)
 	{
-		for(k= 0; k< Nr_K; k++)
+		for(k = 0; k < M; k++)
 		{
-			rx_signal_cmplx[k*block_num+i]= complex <double>(rx_signal_real[i*Nr_K+ k], rx_signal_imag[i*Nr_K+k]); 
+			rx_signal_cmplx[k * n_symbol + i] = complex <double>(rx_signal_real[i * M + k], rx_signal_imag[i * M + k]); 
 		}	
 	}
 
 	//get chnl_eq and convert to C matrix(cross first, then down)
-	int Ns_K;
 	double *chnl_eq_real, *chnl_eq_imag;
 	complex <double> *chnl_eq_cmplx; 
 	
 	chnl_eq_real = mxGetPr(prhs[1]);     
 	chnl_eq_imag = mxGetPi(prhs[1]);
-	Ns_K = int(mxGetN(prhs[1]));
 
-	chnl_eq_cmplx = new complex <double> [Nr_K*Ns_K];
-    for(i= 0; i< Ns_K; i++)   // convert to complex class with order in C
+	chnl_eq_cmplx = new complex <double> [M];
+	for(k = 0; k < Nr_K; k++) // convert to complex class with order in C
 	{
-		for(k= 0; k< Nr_K; k++)
-		{
-			chnl_eq_cmplx[k*Ns_K+i]= complex <double>(chnl_eq_real[i*Nr_K+ k], chnl_eq_imag[i*Nr_K+k]); 
-		}	
-	}
+		chnl_eq_cmplx[k]= complex <double>(chnl_eq_real[k], chnl_eq_imag[k]); 
+	}	
 
     //get bit_mat_anti
-	int Ns_K_Mc, Mc;
+	int Q, Nbps;
 	double *bit_mat_anti, *bit_mat_anti_c;
 	
 	bit_mat_anti = mxGetPr(prhs[2]);     
-	Ns_K_Mc = int(mxGetN(prhs[2]));
-	Mc = int(Ns_K_Mc/Ns_K);
-	row_num = int(pow(2.0,Ns_K_Mc));
+	Nbps = int(mxGetN(prhs[2]));
+	Q = int(pow(2.0, Nbps));
 
-	bit_mat_anti_c = new double  [row_num*Ns_K_Mc];
-    for(i= 0; i< Ns_K_Mc; i++)   
+	bit_mat_anti_c = new double [Q * Nbps];
+    for(i = 0; i < Nbps; i++)   
 	{
-		for(k= 0; k< row_num; k++)
+		for(k = 0; k < Q; k++)
 		{
-			bit_mat_anti_c[k*Ns_K_Mc+i] = bit_mat_anti[i*row_num+k]; //double(bit_mat_anti[i*row_num+k]);  
+			bit_mat_anti_c[k * Nbps + i] = bit_mat_anti[i * Q + k]; //double(bit_mat_anti[i * Q + k]);  
 		}	
 	}
 
-
 	//get prio_LLR_mat and convert to a vector form
-    int Ns, K, Nr; 
 	double *prio_LLR_mat, *prio_LLR_vec;
 
 	prio_LLR_mat = mxGetPr(prhs[3]);     
-    Ns = int(mxGetM(prhs[3])); 
-	col_num  = int(mxGetN(prhs[3]));
-    K = int(Ns_K/Ns);
-    Nr = int(Nr_K/K);
+	int nldpc  = int(mxGetN(prhs[3]));
 
-	prio_LLR_vec = new double [Ns*block_num*K*Mc];
-	for(i= 0; i< block_num*K; i++)
+	prio_LLR_vec = new double [n_symbol * Nbps];
+	for(i = 0; i < block_num; i++)
 	{
-		for(k= 0; k< Ns; k++)
+		for (j = 0; j < Nbps; j++)
 		{
-			for (j = 0; j< Mc; j++)
-			{
-			      prio_LLR_vec[i*Ns*Mc+k*Mc+j] = prio_LLR_mat[i*Ns*Mc+j*Ns+k];
-			}
-		}	
+			prio_LLR_vec[i * Nbps + j] = prio_LLR_mat[i * Nbps + j];
+		}
 	}
 
 	//get sym_mod_mat, and convert to C matrix(cross first, then down)
@@ -313,26 +299,23 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	
 	sym_mod_mat_real = mxGetPr(prhs[4]);     
 	sym_mod_mat_imag = mxGetPi(prhs[4]);	
-	row_num = int(mxGetM(prhs[4]));
-	col_num = int(mxGetN(prhs[4]));
 
-	sym_mod_mat_cmplx = new complex <double> [row_num*col_num];
-    for(i= 0; i< col_num; i++)   // convert to complex class
+	sym_mod_mat_cmplx = new complex <double> [M * Q];
+    for(i = 0; i < Q; i++)   // convert to complex class
 	{
-		for(k= 0; k< row_num; k++)
+		for(k = 0; k < M; k++)
 		{
-			sym_mod_mat_cmplx[k*col_num+i]= complex <double>(sym_mod_mat_real[i*row_num+ k], sym_mod_mat_imag[i*row_num+k]); 
+			sym_mod_mat_cmplx[k * Q + i]= complex <double>(sym_mod_mat_real[i * M + k], sym_mod_mat_imag[i * M + k]); 
 		}	
 	}
 
     double *noise_power; // get noise_power
 	noise_power = mxGetPr(prhs[5]);
 
-    plhs[0] = mxCreateDoubleMatrix(Ns,block_num*K*Mc,  mxREAL); //Create an mxArray for the output data 
-	//plhs[0] = mxCreateDoubleMatrix(1,3,  mxREAL); //for test
+    plhs[0] = mxCreateDoubleMatrix(1, n_symbol * Nbps,  mxREAL); //Create an mxArray for the output data 
 	LextDemodulation = mxGetPr(plhs[0]); // Create a pointer to the output data
 	
-	MAP_demod_c(LextDemodulation, rx_signal_cmplx, chnl_eq_cmplx, bit_mat_anti_c,prio_LLR_vec,  sym_mod_mat_cmplx, *noise_power,  Nr, Ns, K, Mc, block_num);
+	MAP_demod_c(LextDemodulation, rx_signal_cmplx, chnl_eq_cmplx, bit_mat_anti_c, prio_LLR_vec, sym_mod_mat_cmplx, *noise_power, M, Nbps, n_symbol);
 
     delete [] rx_signal_cmplx;
     delete [] chnl_eq_cmplx;
