@@ -2,4 +2,6 @@
 *.data
 *.mat
 *.mexw64
+*.mexw32
+*.mexglx
 *.fig
