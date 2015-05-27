@@ -102,7 +102,7 @@ for i = 1 : max_frame
 		error_perFrame_perMS = zeros(iter_max, 1);
 		for iter = 1 : iter_max
 
-            LextDemodulation = MAP_demod(y(1 : m, :), chnl_eq(1 : m), bit_mat_anti, LextC, sym_mod_mat(1 : m, :), 1.0);
+            LextDemodulation = MAP_demod(y(1 : m, :), chnl_eq(1 : m), bit_mat_anti, LextC, sym_mod_mat(:, 1 : m), 1.0);
 
             LextDemo_deinv = randdeintrlv(LextDemodulation, 0); %de-interleave
             [LLR_output_tmp, errors] = MpDecode(LextDemo_deinv, H_rows, H_cols, max_iterations, decoder_type, 1, 1, data); %ldpc decoder

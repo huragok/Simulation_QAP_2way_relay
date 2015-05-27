@@ -9,17 +9,18 @@ addpath('./functions/LDPC');
 Nbps = 4; % 4, 5, 6
 type_mod = 'QAM';
 
-dB_inv_sigma2 = 30; % 1/sigma2 in dB
+dB_inv_sigma2 = 10; % 1/sigma2 in dB
 p_Pr = 0.5; % this portion of the total power of 4 is allocated to the relay. The rest are divided eqaully between the 2 end nodes
 d = [0.5, 0.5]; % Distance between S and R, R and D
 
 nu = 3; % Pathloss factor
 M = 3; % Total number of transmissions
 
-max_frame = 2000;
-iter_max = 20;
+max_frame = 100;
+iter_max = 5;
 coding_rate = 3 / 4;
 nldpc = 2400;
+
 seed = 8;
 %% 2. Initialization
 n_sigma2 = length(dB_inv_sigma2);
@@ -60,7 +61,7 @@ cmap = colormap(hsv(M));
 legend_item = cell(M, 1);
 h = figure;
 for m = 1 : M
-    semilogy(dB_inv_sigma2, BER_coded(m, :), '-', 'Color', cmap(m, :), 'linewidth', 2), hold on;
+    semilogy(dB_inv_sigma2, BER_coded(m, :), '+-', 'Color', cmap(m, :), 'linewidth', 2), hold on;
     legend_item{m} = ['Non-CoRe, M = ', num2str(m)];
 end
 grid on;
