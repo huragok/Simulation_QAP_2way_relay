@@ -1,5 +1,5 @@
-function BER = get_codedBER(constellation, map, beta_sr, beta_rd, g, sigma_sqr_d, sigma_sqr_r, max_frame, iter_max, coding_rate, nldpc, seed)
-%   BER = get_codedBER(constellation, map, beta_sr, beta_rd, g, sigma_sqr_d, sigma_sqr_r, max_frame, iter_max, coding_rate, nldpc)
+function codedBER = get_codedBER(constellation, map, beta_sr, beta_rd, g, sigma_sqr_d, sigma_sqr_r, max_frame, iter_max, coding_rate, nldpc, seed)
+%   codedBER = get_codedBER(constellation, map, beta_sr, beta_rd, g, sigma_sqr_d, sigma_sqr_r, max_frame, iter_max, coding_rate, nldpc)
 %   Evaluate the LDPC-coded BER of a specific MoDiv mapping design over
 %   multiple retransmissions.
 % _________________________________________________________________________
@@ -22,8 +22,8 @@ function BER = get_codedBER(constellation, map, beta_sr, beta_rd, g, sigma_sqr_d
 %                       mod(nldpc,24)=0.
 %       seed:           Scalar, seed for the random number generator
 %	Outputs:
-%		BER:			M-by-1 vector, the encoded BER for each 
-%                       retransmission
+%		codedBER:		Scalar, the encoded BER by Chase combining the M
+%                       transmissions
 % _________________________________________________________________________
 % Author: Wenhao Wu
 % Email: wnhwu@ucdavis.edu
@@ -36,7 +36,7 @@ function BER = get_codedBER(constellation, map, beta_sr, beta_rd, g, sigma_sqr_d
 
 [M, Q] = size(map);
 Nbps = round(log2(Q)); % Number of bit per symbol
-%symbols_mapped = constellation(map); % The mapped symbols at all transmissions
+rng(seed);
 
 max_bit_error = 1000; % Count up to this number of bit error we stop the simulation since BER can be measured accurately enough at this point
 
@@ -59,7 +59,7 @@ h_sr = sqrt(beta_sr / 2) * (randn(max_frame, M) + 1i * randn(max_frame, M)); % G
 h_rd = sqrt(beta_rd / 2) * (randn(max_frame, M) + 1i * randn(max_frame, M));
         
 % Start the transmission frame by frame
-error_all = zeros(M, max_frame);
+error_all = zeros(1, max_frame);
 for i = 1 : max_frame
 	if mod(i, 5)==0 % Print a 'x' for every 5 frames
 		fprintf('x');
@@ -95,30 +95,30 @@ for i = 1 : max_frame
     y = complex(real(y), imag(y)); % make sure y is complex, used for MAP
 	chnl_eq = complex(real(chnl_eq), imag(chnl_eq)); % make sure chnl_eq is complex, used for MAP
     
-    for m = 1 : M	
-		%iterative receiver
-        LextC = zeros(1, nldpc);
+
+    %iterative receiver
+    LextC = zeros(1, nldpc);
 		
-		error_perFrame_perMS = zeros(iter_max, 1);
-		for iter = 1 : iter_max
+    error_perFrame_perMS = zeros(iter_max, 1);
+    for iter = 1 : iter_max
 
-            LextDemodulation = MAP_demod(y(1 : m, :), chnl_eq(1 : m), bit_mat_anti, LextC, sym_mod_mat(:, 1 : m), 1.0);
+        LextDemodulation = MAP_demod(y, chnl_eq, bit_mat_anti, LextC, sym_mod_mat, 1.0);
 
-            LextDemo_deinv = randdeintrlv(LextDemodulation, 0); %de-interleave
-            [LLR_output_tmp, errors] = MpDecode(LextDemo_deinv, H_rows, H_cols, max_iterations, decoder_type, 1, 1, data); %ldpc decoder
-            error_perFrame_perMS(iter) = errors(end); %count errors in each iteration
-            LLR_output = LLR_output_tmp(end, :);
-            LextDecoder = LLR_output - LextDemo_deinv; %calculate extrinic information from channel decoder
-            LextC = randintrlv(LextDecoder, 0); %interleave
-		end
-
-		error_all(m, i) = error_perFrame_perMS(end);  
+        LextDemo_deinv = randdeintrlv(LextDemodulation, 0); %de-interleave
+        [LLR_output_tmp, errors] = MpDecode(LextDemo_deinv, H_rows, H_cols, max_iterations, decoder_type, 1, 1, data); %ldpc decoder
+        error_perFrame_perMS(iter) = errors(end); %count errors in each iteration
+        LLR_output = LLR_output_tmp(end, :);
+        LextDecoder = LLR_output - LextDemo_deinv; %calculate extrinic information from channel decoder
+        LextC = randintrlv(LextDecoder, 0); %interleave
     end
+
+    error_all(i) = error_perFrame_perMS(end);  
+
     %count errors
-    if min(sum(error_all, 2)) > max_bit_error
+    if sum(error_all) > max_bit_error
         break;
     end
 end
 
-BER = sum(error_all, 2) / (bits_per_frame * i);
+codedBER = sum(error_all) / (bits_per_frame * i);
 
