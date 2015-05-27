@@ -100,7 +100,7 @@ inline double jacln(double x, double y)
  * The worker function of Chase combining HARQ MAP detector. 
  * @param LextDemodulation 1-by-(Nbps * n_symbol) double matrix, the extrinsic LLR 
  * @param rx_signal M-by-n_symbol complex<double> matrix, the received signal corresponding to 1 LDPC frame and M (re)transmisstions
- * @param chnl_eq M-by-1 complex<double> matrix, equivalent channel when the noises or the M (re)transmissions are normalized to have equal power
+ * @param chnl_eq M-by-n_symbol complex<double> matrix, equivalent channel when the noises or the M (re)transmissions are normalized to have equal power
  * @param bit_mat_anti Q-by-Nbps double matrix, take value in {-1, 1}, the antipodal matrix of all possible bit vectors corresponding to 1 constellation points, logic 1 is mapped to -1, and logic 0 is mapped to 1
  * @param prio_LLR_vec prior 1-by-(Nbps * n_symbol) double matrix, the a priori knowledge on each inner coded bit  
  * @param sym_mod_mat Q-by-M complex<double> matrix, each row corresponding to the M symbols across all (re)transmissions corresponding to the same row in bit_mat_anti, 
@@ -125,18 +125,18 @@ void MAP_demod_c(double *LextDemodulation, complex <double> *rx_signal, complex 
     int Q = int(pow(2.0, Nbps));
     chnl_sym_mod = new complex <double> [M * Q]; // Channel multiplied by each of the Q symbols, M-by-Q matrix
 
-    //calculate h * s, chnl_eq * sym_mod_mat 
-	for(int m = 0; m < M; m++)
-	{
-        for(int q = 0; q < Q; q++)
-		{
-			chnl_sym_mod[m * Q + q] = chnl_eq[m] * sym_mod_mat[q * M + m];
-		}
-	}
-	
 	//calculate extrinsic LLR of each bit
 	for (int i_symbol = 0; i_symbol < n_symbol; i_symbol++) // the "i_symbol" th symbol in rx_signal
 	{
+        //calculate h * s, chnl_eq * sym_mod_mat 
+        for(int m = 0; m < M; m++)
+        {
+            for(int q = 0; q < Q; q++)
+            {
+                chnl_sym_mod[m * Q + q] = chnl_eq[m * n_symbol + i_symbol] * sym_mod_mat[q * M + m];
+            }
+        }
+	
 		for (int i_bit = 0; i_bit < Nbps; i_bit++) // the "i_bit" th bit corresponding to this symbol
 		{
 			Log_sum_p1 = double(-INF);
@@ -197,7 +197,7 @@ void MAP_demod_c(double *LextDemodulation, complex <double> *rx_signal, complex 
  * LextDemodulation = MAP_demod(rx_signal, chnl_eq, bit_mat_anti, LextC, sym_mod_mat, noise_power)
  * The cmex gateway routine to the function of Chase combining HARQ MAP detector 
  * @param rx_signal M-by-n_symbol complex matrix, the received signal corresponding to 1 LDPC frame and M (re)transmisstions
- * @param chnl_eq M-by-1 complex matrix, equivalent channel when the noises or the M (re)transmissions are normalized to have equal power
+ * @param chnl_eq M-by-n_symbol complex matrix, equivalent channel when the noises or the M (re)transmissions are normalized to have equal power
  * @param bit_mat_anti Q-by-Nbps real matrix, take value in {-1, 1}, the antipodal matrix of all possible bit vectors corresponding to 1 constellation points, logic 1 is mapped to -1, and logic 0 is mapped to 1
  * @param prio_LLR_vec prior 1-by-(Nbps * n_symbol) real matrix, the a priori knowledge on each inner coded bit  
  * @param sym_mod_mat Q-by-M complex matrix, each row corresponding to the M symbols across all (re)transmissions corresponding to the same row in bit_mat_anti, 
@@ -227,7 +227,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	int n_symbol = mxGetN(prhs[0]);
 	int Nbps = mxGetN(prhs[2]);
 	int Q = int(pow(2.0, Nbps));
-	if (mxGetM(prhs[1]) != M || mxGetN(prhs[1]) != 1 ||
+	if (mxGetM(prhs[1]) != M || mxGetN(prhs[1]) != n_symbol ||
 		mxGetM(prhs[2]) != Q || mxGetN(prhs[2]) != Nbps ||
 		mxGetM(prhs[3]) != 1 || mxGetN(prhs[3]) != Nbps * n_symbol ||
 		mxGetM(prhs[4]) != Q || mxGetN(prhs[4]) != M ||
@@ -259,10 +259,13 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
 	chnl_eq_real = mxGetPr(prhs[1]);     
 	chnl_eq_imag = mxGetPi(prhs[1]);
 
-	chnl_eq_cmplx = new complex <double> [M];
+	chnl_eq_cmplx = new complex <double> [M * n_symbol];
 	for(int m = 0; m < M; m++) // convert to complex class with order in C
 	{
-		chnl_eq_cmplx[m]= complex <double>(chnl_eq_real[m], chnl_eq_imag[m]); 
+        for(int i_symbol = 0; i_symbol < n_symbol; i_symbol++)
+        {
+            chnl_eq_cmplx[m * n_symbol + i_symbol] = complex <double>(chnl_eq_real[i_symbol * M + m], chnl_eq_imag[i_symbol * M + m]);
+        }
 	}	
 
     //get bit_mat_anti

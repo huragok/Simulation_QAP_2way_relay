@@ -52,11 +52,6 @@ bits_per_frame = length(H_cols) - length(P_matrix);
 bit_mat = (dec2bin(0 : Q - 1) > '0') + 0;
 bit_mat_anti = 1 - 2 * bit_mat; % antipodal matrix, logic 1 is mapped to 1, and logic 0 is mapped to -1
 sym_mod_mat = constellation(map).';
-
-% Generate the channels. Assume a block fading channel which is  stationary
-% within each frame and independently fading across frames
-h_sr = sqrt(beta_sr / 2) * (randn(max_frame, M) + 1i * randn(max_frame, M)); % Generate the Rayleigh channel, We expect N to be large so inorder to cut memory usage we generate the random channel/noise once for each transmission
-h_rd = sqrt(beta_rd / 2) * (randn(max_frame, M) + 1i * randn(max_frame, M));
         
 % Start the transmission frame by frame
 error_all = zeros(1, max_frame);
@@ -66,10 +61,9 @@ for i = 1 : max_frame
 	end
 	if mod(i, 400)==0 % Print enter for every 400 frames
 		fprintf('\n');
-	end
-	
-	% source, coding, random interlever and modulation
+    end
 
+	% source, coding, random interlever and modulation
     data = round(rand(1, bits_per_frame)); % Randomly generated information-bearing bit, 1-by-bits_per_frame
     codewordTemp = LdpcEncode(data, H_rows, P_matrix ); % LDPC encoded codeword, 1-by-nldpc
     codeword_invTemp = randintrlv(codewordTemp, 0);  % Interleaved codeword, 1-by-nldpc
@@ -83,14 +77,19 @@ for i = 1 : max_frame
 	% Lets start simulating the transmission
 	numSymbol = size(transmit_Mod, 2); % Number of transmitted symbols per stream per frame
 	y = zeros(M, numSymbol); % The received signal at each (re)transmission
-    chnl_eq = zeros(M, 1); % The equivalent channel at each (re)transmission
+    % Generate the channels. Assume channel to be independently fading
+    % across symbols
+    h_sr = sqrt(beta_sr / 2) * (randn(M, numSymbol) + 1i * randn(M, numSymbol)); % Generate the Rayleigh channel, We expect N to be large so inorder to cut memory usage we generate the random channel/noise once for each transmission
+    h_rd = sqrt(beta_rd / 2) * (randn(M, numSymbol) + 1i * randn(M, numSymbol));
+    
+    chnl_eq = zeros(M, numSymbol); % The equivalent channel at each (re)transmission
     for m = 1 : M	
 		% Received signal and equivalent channel generation
-        y(m, :) = g * h_rd(i, m) * (h_sr(i, m) * transmit_Mod(m, :) + sqrt(sigma_sqr_r / 2) * (randn(1, numSymbol) + 1i * randn(1, numSymbol))) + sqrt(sigma_sqr_d / 2) * (randn(1, numSymbol) + 1i * randn(1, numSymbol));
+        y(m, :) = g * h_rd(m, :) .* (h_sr(m, :) .* transmit_Mod(m, :) + sqrt(sigma_sqr_r / 2) * (randn(1, numSymbol) + 1i * randn(1, numSymbol))) + sqrt(sigma_sqr_d / 2) * (randn(1, numSymbol) + 1i * randn(1, numSymbol));
         
-		cov = abs(g * h_rd(i, m)) ^ 2 * sigma_sqr_r + sigma_sqr_d;
-		y(m, :) = cov ^ (-1/2) * y(m, :);
-		chnl_eq(m) = cov ^ (-1/2) * g * h_rd(i, m) * h_sr(i, m);
+		cov = abs(g * h_rd(m, :)) .^ 2 * sigma_sqr_r + sigma_sqr_d;
+		y(m, :) = cov .^ (-1/2) .* y(m, :);
+		chnl_eq(m, :) = cov .^ (-1/2) .* (g * h_rd(m, :) .* h_sr(m, :));
     end
     y = complex(real(y), imag(y)); % make sure y is complex, used for MAP
 	chnl_eq = complex(real(chnl_eq), imag(chnl_eq)); % make sure chnl_eq is complex, used for MAP

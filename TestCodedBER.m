@@ -8,7 +8,7 @@ addpath('./functions');
 Nbps = 4; % 4, 5, 6
 type_mod = 'QAM';
 
-dB_inv_sigma2 = 10; % 1/sigma2 in dB
+dB_inv_sigma2 = 1; % 1/sigma2 in dB
 p_Pr = 0.5; % this portion of the total power of 4 is allocated to the relay. The rest are divided eqaully between the 2 end nodes
 d = [0.5, 0.5]; % Distance between S and R, R and D
 
@@ -20,7 +20,7 @@ iter_max = 5;
 coding_rate = 3 / 4;
 nldpc = 2400;
 
-seed = 17;
+seed = 8;
 %% 2. Initialization
 n_sigma2 = length(dB_inv_sigma2);
 
