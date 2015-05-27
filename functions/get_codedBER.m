@@ -118,6 +118,6 @@ for i = 1 : max_frame
         break;
     end
 end
-
+fprintf('\n');
 codedBER = sum(error_all) / (bits_per_frame * i);
 
