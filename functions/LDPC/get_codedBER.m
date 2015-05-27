@@ -36,7 +36,7 @@ function BER = get_codedBER(constellation, map, beta_sr, beta_rd, g, sigma_sqr_d
 
 [M, Q] = size(map);
 Nbps = round(log2(Q)); % Number of bit per symbol
-symbols_mapped = constellation(map); % The mapped symbols at all transmissions
+%symbols_mapped = constellation(map); % The mapped symbols at all transmissions
 
 max_bit_error = 1000; % Count up to this number of bit error we stop the simulation since BER can be measured accurately enough at this point
 

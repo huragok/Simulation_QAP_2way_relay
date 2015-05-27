@@ -9,15 +9,15 @@ addpath('./functions/LDPC');
 Nbps = 4; % 4, 5, 6
 type_mod = 'QAM';
 
-dB_inv_sigma2 = 14; % 1/sigma2 in dB
+dB_inv_sigma2 = 30; % 1/sigma2 in dB
 p_Pr = 0.5; % this portion of the total power of 4 is allocated to the relay. The rest are divided eqaully between the 2 end nodes
 d = [0.5, 0.5]; % Distance between S and R, R and D
 
 nu = 3; % Pathloss factor
-M = 4; % Total number of transmissions
+M = 3; % Total number of transmissions
 
 max_frame = 2000;
-iter_max = 5;
+iter_max = 20;
 coding_rate = 3 / 4;
 nldpc = 2400;
 seed = 8;

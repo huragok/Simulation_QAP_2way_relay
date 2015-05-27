@@ -5,3 +5,4 @@
 *.mexw32
 *.mexglx
 *.fig
+*.pdb
