@@ -34,5 +34,70 @@ nb_iterations: number of iterations for each annealing
 nb_res resolution
 
 
+<<<
+Nr: the number of receive antenna
+Ns: the number of bit streams
+>>>
+M: the number of transmissions
+
+<<<
+K: number of temporal vectors in linear precoding (just 1)
+>>>
+removed (just 1)
+
+<<<
+L: number of blocks (just n_symbol)
+>>>
+n_symbol: number of symbols per frame
+
+<<<
+Mc: bit per symbol of modulation
+>>>
+Nbps: number of bits per symbol
+
+<<<
+block_num: number of blocks of received signal y, L
+>>>
+removed (just n_symbols)
+
+>>>
+Nr_K
+<<<
+M
+
+>>>
+Ns_K_Mc
+bit_mat_row_num
+<<<
+Nbps
+Q = 2 ^ Nbps
+
+>>>
+block_index
+<<<
+i_symbol
+
+Please follow following steps
+
+Debugging work flow for MSVS
+0.Creat your dll or mexw32 file using the option make -g or mex -g
+filename.c
+1.Close every thing(to make it fast .. not mandatory though
+2.Open MSVC 2008 Express Edition
+3.Open Matlab
+4.From MS VC 2008 Go To Tools->Attach To Process (If this option does
+n't show up repeat step 1 and it will :)
+5.In Attach to process, select MATLAB.exe (Native code option is
+selected by default. If it is not select it manually)
+6.From VC IDE, go to File->Open->File and select the file having
+mexFunction(testmex.c in my case)
+7.Put Breakpoints ar required lines(it will show warning that the code
+may not hit the breakpint as the symbols for this are not loaded)
+Ignore the warning.
+8.Run your simulation (It will be good to put a breakpoint in Matlab
+code line in which we call the mex func.
+9.Run the code and it will hit the breakpoint...now we can step
+execute it.
+
 
 

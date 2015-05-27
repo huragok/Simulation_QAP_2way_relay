@@ -3,7 +3,6 @@ close all;
 clc;
 
 addpath('./functions');
-addpath('./functions/LDPC');
 
 %% 1. Simulation settings
 Nbps = 4; % 4, 5, 6
