@@ -9,16 +9,16 @@ addpath('./functions');
 load('Test_2015526214647641.MAT')
 
 % 3 transmissions
-M_to_test = 3; % 3, 4, plot the waterfall curve only for Chase combining M_to_test transmissions
-dB_inv_sigma2_noncore = [0, 0.5, 1, 1.5, 2, 2.5 ,2.6, 2.7, 2.8, 2.9]; % 1/sigma2 in dB
-dB_inv_sigma2_seddik = [-1, -0.5, 0, 0.5, 1, 1.5, 1.6, 1.7, 1.8, 1.75];
-dB_inv_sigma2_QAP = [-2, -1.5, -1, -0.5, 0, 0.5, 0.6, 0.7, 0.8, 0.85, 0.87];
+% M_to_test = 3; % 3, 4, plot the waterfall curve only for Chase combining M_to_test transmissions
+% dB_inv_sigma2_noncore = [0, 0.5, 1, 1.5, 2, 2.5 ,2.6, 2.7, 2.8, 2.9]; % 1/sigma2 in dB
+% dB_inv_sigma2_seddik = [-1, -0.5, 0, 0.5, 1, 1.5, 1.6, 1.7, 1.8, 1.75];
+% dB_inv_sigma2_QAP = [-2, -1.5, -1, -0.5, 0, 0.5, 0.6, 0.7, 0.8, 0.85, 0.87];
 
 % 4 transmissions
-% M_to_test = 4; % 3, 4, plot the waterfall curve only for Chase combining M_to_test transmissions
-% dB_inv_sigma2_noncore = [3]; % 1/sigma2 in dB
-% dB_inv_sigma2_seddik = [-1, -0.5];
-% dB_inv_sigma2_QAP = [-1, -0.5];
+M_to_test = 4; % 3, 4, plot the waterfall curve only for Chase combining M_to_test transmissions
+dB_inv_sigma2_noncore = [-2, -1.5, -1, -0.5, 0, 0.2, 0.4, 0.6, 0.8, 1, 1.05, 1.1, 1.15]; % 1/sigma2 in dB
+dB_inv_sigma2_seddik = [-3, -2.5, -2, -1.5, -1, -0.8, -0.6, -0.4, -0.2, 0, 0.2, 0.3, 0.4];
+dB_inv_sigma2_QAP = [-4, -3.5, -3, -2.5, -2.2, -2, -1.8, -1.6, -1.5, -1.4, -1.38];
 
 % 32QAM
 %load('Test_2015526214826704.MAT')
