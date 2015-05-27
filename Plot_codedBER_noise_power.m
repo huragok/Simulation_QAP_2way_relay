@@ -5,12 +5,50 @@ clc;
 addpath('./functions');
 
 %% 1. Simulation settings
-load('Test_2015526214647641.MAT') % 16QAM
-M_to_test = 3; % 3, 4, plot the waterfall curve only for Chase combining M_to_test transmissions
-dB_inv_sigma2_noncore = [-1, -0.5]; % 1/sigma2 in dB
-dB_inv_sigma2_seddik = [-1, -0.5];
-dB_inv_sigma2_QAP = [-1, -0.5];
+% 16QAM
+load('Test_2015526214647641.MAT')
 
+% 3 transmissions
+M_to_test = 3; % 3, 4, plot the waterfall curve only for Chase combining M_to_test transmissions
+dB_inv_sigma2_noncore = [0, 0.5, 1, 1.5, 2, 2.5 ,2.6, 2.7, 2.8, 2.9]; % 1/sigma2 in dB
+dB_inv_sigma2_seddik = [-1, -0.5, 0, 0.5, 1, 1.5, 1.6, 1.7, 1.8, 1.75];
+dB_inv_sigma2_QAP = [-2, -1.5, -1, -0.5, 0, 0.5, 0.6, 0.7, 0.8, 0.85, 0.87];
+
+% 4 transmissions
+% M_to_test = 4; % 3, 4, plot the waterfall curve only for Chase combining M_to_test transmissions
+% dB_inv_sigma2_noncore = [3]; % 1/sigma2 in dB
+% dB_inv_sigma2_seddik = [-1, -0.5];
+% dB_inv_sigma2_QAP = [-1, -0.5];
+
+% 32QAM
+%load('Test_2015526214826704.MAT')
+
+% 3 transmissions
+% M_to_test = 3; % 3, 4, plot the waterfall curve only for Chase combining M_to_test transmissions
+% dB_inv_sigma2_noncore = [3]; % 1/sigma2 in dB
+% dB_inv_sigma2_seddik = [-1, -0.5];
+% dB_inv_sigma2_QAP = [-1, -0.5];
+
+% 4 transmissions
+% M_to_test = 4; % 3, 4, plot the waterfall curve only for Chase combining M_to_test transmissions
+% dB_inv_sigma2_noncore = [3]; % 1/sigma2 in dB
+% dB_inv_sigma2_seddik = [-1, -0.5];
+% dB_inv_sigma2_QAP = [-1, -0.5];
+
+% 64QAM
+%load('Test_2015526214927658.MAT')
+
+% 3 transmissions
+% M_to_test = 3; % 3, 4, plot the waterfall curve only for Chase combining M_to_test transmissions
+% dB_inv_sigma2_noncore = [3]; % 1/sigma2 in dB
+% dB_inv_sigma2_seddik = [-1, -0.5];
+% dB_inv_sigma2_QAP = [-1, -0.5];
+
+% 4 transmissions
+% M_to_test = 4; % 3, 4, plot the waterfall curve only for Chase combining M_to_test transmissions
+% dB_inv_sigma2_noncore = [3]; % 1/sigma2 in dB
+% dB_inv_sigma2_seddik = [-1, -0.5];
+% dB_inv_sigma2_QAP = [-1, -0.5];
 
 Nbps = test_cases(1).param_origin.Nbps;
 type_mod = test_cases(1).param_origin.type_mod;
@@ -19,7 +57,7 @@ d = [test_cases(1).param_origin.d1, test_cases(1).param_origin.d2]; % Distance b
 nu = test_cases(1).param_origin.nu; % Pathloss factor
 M = test_cases(1).param_origin.M; % Total number of transmissions
 
-max_frame = 100;
+max_frame = 2000;
 iter_max = 5;
 coding_rate = 3 / 4;
 nldpc = 2400;
@@ -97,7 +135,7 @@ semilogy(dB_inv_sigma2_QAP, codedBER_QAP, 'ro-.', 'linewidth', 2);
 grid on;
 set(gca, 'Fontsize', 18);
 xlabel('1/\sigma^2(dB)'), ylabel('Coded BER');
-legend({'non-Core', 'Seddik', 'MoDiv'}, 'Location', 'eastoutside');
+legend({'non-Core', 'Seddik', 'MoDiv'}, 'Location', 'northeast');
 saveas(h, ['waterfall_', num2str(M_to_test), 'M_', num2str(Q), 'QAM.fig']);
 
-
+save(['waterfall_', num2str(M_to_test), 'M_', num2str(Q), 'QAM.mat'], 'dB_inv_sigma2_noncore', 'dB_inv_sigma2_seddik', 'dB_inv_sigma2_QAP', 'codedBER_noncore', 'codedBER_seddik', 'codedBER_QAP')
