@@ -6,7 +6,7 @@ addpath('./functions');
 
 %% 1. Simulation settings
 % 16QAM
-load('Test_2015526214647641.MAT')
+% load('Test_2015526214647641.MAT')
 
 % 3 transmissions
 % M_to_test = 3; % 3, 4, plot the waterfall curve only for Chase combining M_to_test transmissions
@@ -15,25 +15,25 @@ load('Test_2015526214647641.MAT')
 % dB_inv_sigma2_QAP = [-2, -1.5, -1, -0.5, 0, 0.5, 0.6, 0.7, 0.8, 0.85, 0.87];
 
 % 4 transmissions
-M_to_test = 4; % 3, 4, plot the waterfall curve only for Chase combining M_to_test transmissions
-dB_inv_sigma2_noncore = [-2, -1.5, -1, -0.5, 0, 0.2, 0.4, 0.6, 0.8, 1, 1.05, 1.1, 1.15]; % 1/sigma2 in dB
-dB_inv_sigma2_seddik = [-3, -2.5, -2, -1.5, -1, -0.8, -0.6, -0.4, -0.2, 0, 0.2, 0.3, 0.4];
-dB_inv_sigma2_QAP = [-4, -3.5, -3, -2.5, -2.2, -2, -1.8, -1.6, -1.5, -1.4, -1.38];
+% M_to_test = 4; % 3, 4, plot the waterfall curve only for Chase combining M_to_test transmissions
+% dB_inv_sigma2_noncore = [-2, -1.5, -1, -0.5, 0, 0.2, 0.4, 0.6, 0.8, 1, 1.05, 1.1, 1.15]; % 1/sigma2 in dB
+% dB_inv_sigma2_seddik = [-3, -2.5, -2, -1.5, -1, -0.8, -0.6, -0.4, -0.2, 0, 0.2, 0.3, 0.4];
+% dB_inv_sigma2_QAP = [-4, -3.5, -3, -2.5, -2.2, -2, -1.8, -1.6, -1.5, -1.4, -1.38];
 
 % 32QAM
-%load('Test_2015526214826704.MAT')
+load('Test_2015526214826704.MAT')
 
 % 3 transmissions
 % M_to_test = 3; % 3, 4, plot the waterfall curve only for Chase combining M_to_test transmissions
-% dB_inv_sigma2_noncore = [3]; % 1/sigma2 in dB
-% dB_inv_sigma2_seddik = [-1, -0.5];
-% dB_inv_sigma2_QAP = [-1, -0.5];
+% dB_inv_sigma2_noncore = [2, 2.5, 3, 3.5, 4, 4.2, 4.4, 4.6, 4.8, 5, 5.1, 5.2, 5.33]; % 1/sigma2 in dB
+% dB_inv_sigma2_seddik = [1.5, 2, 2.5, 3, 3.2, 3.4, 3.6, 3.8, 3.9, 4, 4.1, 4.15];
+% dB_inv_sigma2_QAP = [-0.5, 0, 0.5, 1, 1.5, 1.8, 2, 2.1, 2.2, 2.3, 2.33];
 
 % 4 transmissions
-% M_to_test = 4; % 3, 4, plot the waterfall curve only for Chase combining M_to_test transmissions
-% dB_inv_sigma2_noncore = [3]; % 1/sigma2 in dB
-% dB_inv_sigma2_seddik = [-1, -0.5];
-% dB_inv_sigma2_QAP = [-1, -0.5];
+M_to_test = 4; % 3, 4, plot the waterfall curve only for Chase combining M_to_test transmissions
+dB_inv_sigma2_noncore = [0.5, 1, 1.5, 2, 2.5, 3, 3.2, 3.3, 3.4, 3.5, 3.63]; % 1/sigma2 in dB
+dB_inv_sigma2_seddik = [0, 0.5, 1, 1.4, 1.6, 1.8, 2, 2.2, 2.4, 2.6, 2.72];
+dB_inv_sigma2_QAP = [-2.5, -2, -1.5, -1, -0.8, -0.6, -0.4, -0.2, -0.1, 0, 0.03];
 
 % 64QAM
 %load('Test_2015526214927658.MAT')
@@ -99,7 +99,7 @@ for i_sigma2 = 1 : n_sigma2_noncore
     disp(['Non-CoRe, 1/sigma2 = ', num2str(dB_inv_sigma2_noncore(i_sigma2)), 'dB, coded BER = ', num2str(codedBER_noncore(i_sigma2))]);
 end
 
-% The Seddik waterfall curve
+The Seddik waterfall curve
 sigma_sqr = 10 .^ (-dB_inv_sigma2_seddik / 10); % The noise covariance at all nodes
 sigma_sqr_d = sigma_sqr;
 sigma_sqr_r = sigma_sqr;
