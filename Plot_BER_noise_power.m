@@ -5,9 +5,9 @@ clc;
 addpath('./functions');
 
 %% 0. Load the data file that contains the test result
-%load('Test_201551521130491.MAT') % 16QAM
-%load('Test_201551521628127') % 32QAM
-load('Test_201551521162579') % 64QAM
+load('./data/Test_201551521130491.MAT') % 16QAM
+%load('./data/Test_201551521628127') % 32QAM
+%load('./data/Test_201551521162579') % 64QAM
 
 
 %% 1. Simulation settings
@@ -67,9 +67,9 @@ for i_sigma2 = 1 : n_sigma2
     
     % Compute the bit error rate using Monte-Carlo simulation
     BER_MC{i_sigma2} = zeros(M, 3);
-    BER_MC{i_sigma2}(:, 1) = get_BER(constellation, map_noncore, beta_sr, beta_rd, g(i_sigma2), sigma_sqr_d(i_sigma2), sigma_sqr_r(i_sigma2), N_per_batch, N_batch, seed);
-    BER_MC{i_sigma2}(:, 2) = get_BER(constellation, map_seddik, beta_sr, beta_rd, g(i_sigma2), sigma_sqr_d(i_sigma2), sigma_sqr_r(i_sigma2), N_per_batch, N_batch, seed);
-    BER_MC{i_sigma2}(:, 3) = get_BER(constellation, map_QAP{i_sigma2}, beta_sr, beta_rd, g(i_sigma2), sigma_sqr_d(i_sigma2), sigma_sqr_r(i_sigma2), N_per_batch, N_batch, seed);
+    BER_MC{i_sigma2}(:, 1) = get_BER(constellation, map_noncore, beta_sr, beta_rd, Pr, Pt, Pt, sigma_sqr_d(i_sigma2), sigma_sqr_r(i_sigma2), N_per_batch, N_batch, seed);
+    BER_MC{i_sigma2}(:, 2) = get_BER(constellation, map_seddik, beta_sr, beta_rd, Pr, Pt, Pt, sigma_sqr_d(i_sigma2), sigma_sqr_r(i_sigma2), N_per_batch, N_batch, seed);
+    BER_MC{i_sigma2}(:, 3) = get_BER(constellation, map_QAP{i_sigma2}, beta_sr, beta_rd, Pr, Pt, Pt, sigma_sqr_d(i_sigma2), sigma_sqr_r(i_sigma2), N_per_batch, N_batch, seed);
     
     toc;
     disp(['BER simulation for 1/sigma2 = ', num2str(dB_inv_sigma2(i_sigma2)), 'dB completed.'])

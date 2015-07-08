@@ -5,9 +5,9 @@ clc;
 addpath('./functions');
 
 %% 0. Load the data file that contains the test result
-load('Test_20155152021681.MAT') % 16QAM
-%load('Test_2015515202851055.mat') % 32QAM
-%load('Test_2015515203548283.mat') % 64QAM
+load('./data/Test_20155152021681.MAT') % 16QAM
+%load('./data/Test_2015515202851055.mat') % 32QAM
+%load('./data/Test_2015515203548283.mat') % 64QAM
 
 %% 1. Simulation settings
 N_batch = 1; % Number of batches,
@@ -65,9 +65,9 @@ for i_p_Pr = 1 : n_p_Pr
     
     % Compute the bit error rate using Monte-Carlo simulation
     BER_MC{i_p_Pr} = zeros(M, 3);
-    BER_MC{i_p_Pr}(:, 1) = get_BER(sqrt(Pt(i_p_Pr)) * constellation, map_noncore, beta_sr, beta_rd, g(i_p_Pr), sigma_sqr_d, sigma_sqr_r, N_per_batch, N_batch, seed);
-    BER_MC{i_p_Pr}(:, 2) = get_BER(sqrt(Pt(i_p_Pr)) * constellation, map_seddik, beta_sr, beta_rd, g(i_p_Pr), sigma_sqr_d, sigma_sqr_r, N_per_batch, N_batch, seed);
-    BER_MC{i_p_Pr}(:, 3) = get_BER(sqrt(Pt(i_p_Pr)) * constellation, map_QAP{i_p_Pr}, beta_sr, beta_rd, g(i_p_Pr), sigma_sqr_d, sigma_sqr_r, N_per_batch, N_batch, seed);
+    BER_MC{i_p_Pr}(:, 1) = get_BER(sqrt(Pt(i_p_Pr)) * constellation, map_noncore, beta_sr, beta_rd, Pr(i_p_Pr), Pt(i_p_Pr), Pt(i_p_Pr), sigma_sqr_d, sigma_sqr_r, N_per_batch, N_batch, seed);
+    BER_MC{i_p_Pr}(:, 2) = get_BER(sqrt(Pt(i_p_Pr)) * constellation, map_seddik, beta_sr, beta_rd, Pr(i_p_Pr), Pt(i_p_Pr), Pt(i_p_Pr), sigma_sqr_d, sigma_sqr_r, N_per_batch, N_batch, seed);
+    BER_MC{i_p_Pr}(:, 3) = get_BER(sqrt(Pt(i_p_Pr)) * constellation, map_QAP{i_p_Pr}, beta_sr, beta_rd, Pr(i_p_Pr), Pt(i_p_Pr), Pt(i_p_Pr), sigma_sqr_d, sigma_sqr_r, N_per_batch, N_batch, seed);
     
     toc;
     disp(['Power allocated to the relay = ', num2str(p_Pr(i_p_Pr)), ' completed.'])

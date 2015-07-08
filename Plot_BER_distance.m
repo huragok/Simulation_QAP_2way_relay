@@ -5,9 +5,9 @@ clc;
 addpath('./functions');
 
 %% 0. Load the data file that contains the test result
-load('Test_2015515185713909.MAT') % 16QAM
-%load('Test_201551519134039.MAT') % 32QAM
-%load('Test_201551519847716') % 64QAM
+load('./data/Test_2015515185713909.MAT') % 16QAM
+%load('./data/Test_201551519134039.MAT') % 32QAM
+%load('./data/Test_201551519847716') % 64QAM
 
 %% 1. Simulation settings
 N_batch = 1; % Number of batches,
@@ -66,9 +66,9 @@ for i_d = 1 : n_d
     
     % Compute the bit error rate using Monte-Carlo simulation
     BER_MC{i_d} = zeros(M, 3);
-    BER_MC{i_d}(:, 1) = get_BER(constellation, map_noncore, beta_sr(i_d), beta_rd(i_d), g(i_d), sigma_sqr_d, sigma_sqr_r, N_per_batch, N_batch, seed);
-    BER_MC{i_d}(:, 2) = get_BER(constellation, map_seddik, beta_sr(i_d), beta_rd(i_d), g(i_d), sigma_sqr_d, sigma_sqr_r, N_per_batch, N_batch, seed);
-    BER_MC{i_d}(:, 3) = get_BER(constellation, map_QAP{i_d}, beta_sr(i_d), beta_rd(i_d), g(i_d), sigma_sqr_d, sigma_sqr_r, N_per_batch, N_batch, seed);
+    BER_MC{i_d}(:, 1) = get_BER(constellation, map_noncore, beta_sr(i_d), beta_rd(i_d), Pr, Pt, Pt, sigma_sqr_d, sigma_sqr_r, N_per_batch, N_batch, seed);
+    BER_MC{i_d}(:, 2) = get_BER(constellation, map_seddik, beta_sr(i_d), beta_rd(i_d), Pr, Pt, Pt, sigma_sqr_d, sigma_sqr_r, N_per_batch, N_batch, seed);
+    BER_MC{i_d}(:, 3) = get_BER(constellation, map_QAP{i_d}, beta_sr(i_d), beta_rd(i_d), Pr, Pt, Pt, sigma_sqr_d, sigma_sqr_r, N_per_batch, N_batch, seed);
     
     toc;
     disp(['Distance (source to relay, relay to destination) = (', num2str(d1(i_d)), ',', num2str(d2(i_d)), ') completed.'])

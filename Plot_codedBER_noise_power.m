@@ -6,13 +6,18 @@ addpath('./functions');
 
 %% 1. Simulation settings
 % 16QAM
-% load('Test_2015526214647641.MAT')
+load('./data/Test_2015526214647641.MAT')
 
 % 3 transmissions
-% M_to_test = 3; % 3, 4, plot the waterfall curve only for Chase combining M_to_test transmissions
-% dB_inv_sigma2_noncore = [0, 0.5, 1, 1.5, 2, 2.5 ,2.6, 2.7, 2.8, 2.9]; % 1/sigma2 in dB
-% dB_inv_sigma2_seddik = [-1, -0.5, 0, 0.5, 1, 1.5, 1.6, 1.7, 1.8, 1.75];
-% dB_inv_sigma2_QAP = [-2, -1.5, -1, -0.5, 0, 0.5, 0.6, 0.7, 0.8, 0.85, 0.87];
+M_to_test = 3; % 3, 4, plot the waterfall curve only for Chase combining M_to_test transmissions
+
+dB_inv_sigma2_noncore = [0, 0.5, 1, 1.5, 2]; % 1/sigma2 in dB
+dB_inv_sigma2_seddik = [];
+dB_inv_sigma2_QAP = [];
+
+%dB_inv_sigma2_noncore = [0, 0.5, 1, 1.5, 2, 2.5 ,2.6, 2.7, 2.8, 2.9]; % 1/sigma2 in dB
+%dB_inv_sigma2_seddik = [-1, -0.5, 0, 0.5, 1, 1.5, 1.6, 1.7, 1.8, 1.75];
+%dB_inv_sigma2_QAP = [-2, -1.5, -1, -0.5, 0, 0.5, 0.6, 0.7, 0.8, 0.85, 0.87];
 
 % 4 transmissions
 % M_to_test = 4; % 3, 4, plot the waterfall curve only for Chase combining M_to_test transmissions
@@ -36,7 +41,7 @@ addpath('./functions');
 % dB_inv_sigma2_QAP = [-2.5, -2, -1.5, -1, -0.8, -0.6, -0.4, -0.2, -0.1, 0, 0.03];
 
 % 64QAM
-load('Test_2015526214927658.MAT')
+% load('Test_2015526214927658.MAT')
 
 % 3 transmissions
 % M_to_test = 3; % 3, 4, plot the waterfall curve only for Chase combining M_to_test transmissions
@@ -45,10 +50,10 @@ load('Test_2015526214927658.MAT')
 % dB_inv_sigma2_QAP = [1, 1.5, 2, 2.4, 2.6, 2.8, 3, 3.2, 3.4, 3.6, 3.8, 3.9];
 
 % 4 transmissions
-M_to_test = 4; % 3, 4, plot the waterfall curve only for Chase combining M_to_test transmissions
-dB_inv_sigma2_noncore = [2.5, 3, 3.5, 4, 4.5, 5, 5.2, 5.4, 5.6, 5.8, 6, 6.1, 6.2, 6.3, 6.4]; % 1/sigma2 in dB
-dB_inv_sigma2_seddik = [2.5, 3, 3.4, 3.6, 3.8, 4, 4.2, 4.4, 4.6, 4.8, 5, 5.2, 5.3, 5.4];
-dB_inv_sigma2_QAP = [-1, -0.5, 0, 0.2, 0.4, 0.6, 0.8, 1, 1.1, 1.2, 1.3];
+% M_to_test = 4; % 3, 4, plot the waterfall curve only for Chase combining M_to_test transmissions
+% dB_inv_sigma2_noncore = [2.5, 3, 3.5, 4, 4.5, 5, 5.2, 5.4, 5.6, 5.8, 6, 6.1, 6.2, 6.3, 6.4]; % 1/sigma2 in dB
+% dB_inv_sigma2_seddik = [2.5, 3, 3.4, 3.6, 3.8, 4, 4.2, 4.4, 4.6, 4.8, 5, 5.2, 5.3, 5.4];
+% dB_inv_sigma2_QAP = [-1, -0.5, 0, 0.2, 0.4, 0.6, 0.8, 1, 1.1, 1.2, 1.3];
 
 Nbps = test_cases(1).param_origin.Nbps;
 type_mod = test_cases(1).param_origin.type_mod;
@@ -90,11 +95,11 @@ codedBER_QAP = zeros(1, n_sigma2_QAP);
 sigma_sqr = 10 .^ (-dB_inv_sigma2_noncore / 10); % The noise covariance at all nodes
 sigma_sqr_d = sigma_sqr;
 sigma_sqr_r = sigma_sqr;
-g = sqrt(Pr ./ (beta_sr * Pt + beta_rd * Pt + sigma_sqr_r)); % The power normalization factor
+% g = sqrt(Pr ./ (beta_sr * Pt + beta_rd * Pt + sigma_sqr_r)); % The power normalization factor
 for i_sigma2 = 1 : n_sigma2_noncore
     tic
     % Compute the bit error rate using Monte-Carlo simulation
-    codedBER_noncore(i_sigma2) = get_codedBER(constellation, map_noncore(1 : M_to_test, :), beta_sr, beta_rd, g(i_sigma2), sigma_sqr_d(i_sigma2), sigma_sqr_r(i_sigma2), max_frame, iter_max, coding_rate, nldpc, seed);
+    codedBER_noncore(i_sigma2) = get_codedBER(constellation, map_noncore(1 : M_to_test, :), beta_sr, beta_rd, Pr, Pt, Pt, sigma_sqr_d(i_sigma2), sigma_sqr_r(i_sigma2), max_frame, iter_max, coding_rate, nldpc, seed);
     toc;
     disp(['Non-CoRe, 1/sigma2 = ', num2str(dB_inv_sigma2_noncore(i_sigma2)), 'dB, coded BER = ', num2str(codedBER_noncore(i_sigma2))]);
 end
@@ -103,11 +108,10 @@ end
 sigma_sqr = 10 .^ (-dB_inv_sigma2_seddik / 10); % The noise covariance at all nodes
 sigma_sqr_d = sigma_sqr;
 sigma_sqr_r = sigma_sqr;
-g = sqrt(Pr ./ (beta_sr * Pt + beta_rd * Pt + sigma_sqr_r)); % The power normalization factor
 for i_sigma2 = 1 : n_sigma2_seddik
     tic
     % Compute the bit error rate using Monte-Carlo simulation
-    codedBER_seddik(i_sigma2) = get_codedBER(constellation, map_seddik(1 : M_to_test, :), beta_sr, beta_rd, g(i_sigma2), sigma_sqr_d(i_sigma2), sigma_sqr_r(i_sigma2), max_frame, iter_max, coding_rate, nldpc, seed);
+    codedBER_seddik(i_sigma2) = get_codedBER(constellation, map_seddik(1 : M_to_test, :), beta_sr, beta_rd, Pr, Pt, Pt, sigma_sqr_d(i_sigma2), sigma_sqr_r(i_sigma2), max_frame, iter_max, coding_rate, nldpc, seed);
     toc;
     disp(['Seddik, 1/sigma2 = ', num2str(dB_inv_sigma2_seddik(i_sigma2)), 'dB, coded BER = ', num2str(codedBER_seddik(i_sigma2))]);
 end
@@ -116,11 +120,10 @@ end
 sigma_sqr = 10 .^ (-dB_inv_sigma2_QAP / 10); % The noise covariance at all nodes
 sigma_sqr_d = sigma_sqr;
 sigma_sqr_r = sigma_sqr;
-g = sqrt(Pr ./ (beta_sr * Pt + beta_rd * Pt + sigma_sqr_r)); % The power normalization factor
 for i_sigma2 = 1 : n_sigma2_QAP
     tic
     % Compute the bit error rate using Monte-Carlo simulation
-    codedBER_QAP(i_sigma2) = get_codedBER(constellation, map_QAP(1 : M_to_test, :), beta_sr, beta_rd, g(i_sigma2), sigma_sqr_d(i_sigma2), sigma_sqr_r(i_sigma2), max_frame, iter_max, coding_rate, nldpc, seed);
+    codedBER_QAP(i_sigma2) = get_codedBER(constellation, map_QAP(1 : M_to_test, :), beta_sr, beta_rd, Pr, Pt, Pt, sigma_sqr_d(i_sigma2), sigma_sqr_r(i_sigma2), max_frame, iter_max, coding_rate, nldpc, seed);
     toc;
     disp(['QAP, 1/sigma2 = ', num2str(dB_inv_sigma2_QAP(i_sigma2)), 'dB, coded BER = ', num2str(codedBER_QAP(i_sigma2))]);
 end

@@ -1,5 +1,5 @@
-function codedBER = get_codedBER(constellation, map, beta_sr, beta_rd, g, sigma_sqr_d, sigma_sqr_r, max_frame, iter_max, coding_rate, nldpc, seed)
-%   codedBER = get_codedBER(constellation, map, beta_sr, beta_rd, g, sigma_sqr_d, sigma_sqr_r, max_frame, iter_max, coding_rate, nldpc)
+function codedBER = get_codedBER(constellation, map, beta_sr, beta_rd, Pr, P1, P2, sigma_sqr_d, sigma_sqr_r, max_frame, iter_max, coding_rate, nldpc, seed)
+%   codedBER = get_codedBER(constellation, map, beta_sr, beta_rd, Pr, P1, P2, sigma_sqr_d, sigma_sqr_r, max_frame, iter_max, coding_rate, nldpc)
 %   Evaluate the LDPC-coded BER of a specific MoDiv mapping design over
 %   multiple retransmissions.
 % _________________________________________________________________________
@@ -10,7 +10,11 @@ function codedBER = get_codedBER(constellation, map, beta_sr, beta_rd, g, sigma_
 %                       source to relay
 %       beta_rd:        Scalar, the variance of the Rayleigh channel from
 %                       relay to destination
-%       g:              Scalar, the power normalization factor at the relay
+%       Pr:             Scalar, the average power constraint at the relay
+%       P1:             Scalar, the average power constraint at the
+%                       source
+%       P2:             Scalar, the average power constraint at the
+%                       destination
 %       sigma_sqr_d:    Scalar, the variance of AWGN noise at the
 %                       destination
 %       sigma_sqr_r:    Scalar, the variance of AWGN noise at the relay
@@ -81,15 +85,16 @@ for i = 1 : max_frame
     % across symbols
     h_sr = sqrt(beta_sr / 2) * (randn(M, numSymbol) + 1i * randn(M, numSymbol)); % Generate the Rayleigh channel, We expect N to be large so inorder to cut memory usage we generate the random channel/noise once for each transmission
     h_rd = sqrt(beta_rd / 2) * (randn(M, numSymbol) + 1i * randn(M, numSymbol));
+    g = sqrt(Pr ./ (abs(h_sr) .^ 2 * P1 + abs(h_rd) .^ 2 * P2 + sigma_sqr_r)); % The power normalization factor
     
     chnl_eq = zeros(M, numSymbol); % The equivalent channel at each (re)transmission
     for m = 1 : M	
 		% Received signal and equivalent channel generation
-        y(m, :) = g * h_rd(m, :) .* (h_sr(m, :) .* transmit_Mod(m, :) + sqrt(sigma_sqr_r / 2) * (randn(1, numSymbol) + 1i * randn(1, numSymbol))) + sqrt(sigma_sqr_d / 2) * (randn(1, numSymbol) + 1i * randn(1, numSymbol));
+        y(m, :) = g(m, :) .* h_rd(m, :) .* (h_sr(m, :) .* transmit_Mod(m, :) + sqrt(sigma_sqr_r / 2) * (randn(1, numSymbol) + 1i * randn(1, numSymbol))) + sqrt(sigma_sqr_d / 2) * (randn(1, numSymbol) + 1i * randn(1, numSymbol));
         
-		cov = abs(g * h_rd(m, :)) .^ 2 * sigma_sqr_r + sigma_sqr_d;
+		cov = abs(g(m, :) .* h_rd(m, :)) .^ 2 * sigma_sqr_r + sigma_sqr_d;
 		y(m, :) = cov .^ (-1/2) .* y(m, :);
-		chnl_eq(m, :) = cov .^ (-1/2) .* (g * h_rd(m, :) .* h_sr(m, :));
+		chnl_eq(m, :) = cov .^ (-1/2) .* (g(m, :) .* h_rd(m, :) .* h_sr(m, :));
     end
     y = complex(real(y), imag(y)); % make sure y is complex, used for MAP
 	chnl_eq = complex(real(chnl_eq), imag(chnl_eq)); % make sure chnl_eq is complex, used for MAP
