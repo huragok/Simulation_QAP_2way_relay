@@ -8,7 +8,7 @@ addpath('./functions');
 
 %% 1. Simulation settings
 % Constellation specification
-Nbps = 6; % 4, 5, 6
+Nbps = 4; % 4, 5, 6
 type_mod = 'QAM';
 
 % Node S, R, D power, channel power and noise power specification
@@ -20,7 +20,7 @@ type_mod = 'QAM';
 % We also assume that the channel and noise are stationary across
 % transmissions
 
-dB_inv_sigma2 = 4.5; % 1/sigma2 in dB
+dB_inv_sigma2 = [4 : 2 : 16]; % 1/sigma2 in dB
 p_Pr = 0.5; % this portion of the total power of 4 is allocated to the relay. The rest are divided eqaully between the 2 end nodes
 d = [0.5, 0.5]; % Distance between S and R, R and D
 

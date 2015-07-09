@@ -6,54 +6,53 @@ addpath('./functions');
 
 %% 1. Simulation settings
 % 16QAM
-load('./data/Test_2015526214647641.MAT')
+% load('./data/Test_2015526214647641.MAT')
 
 % 3 transmissions
-M_to_test = 3; % 3, 4, plot the waterfall curve only for Chase combining M_to_test transmissions
-
-dB_inv_sigma2_noncore = [0, 0.5, 1, 1.5, 2]; % 1/sigma2 in dB
-dB_inv_sigma2_seddik = [];
-dB_inv_sigma2_QAP = [];
-
-%dB_inv_sigma2_noncore = [0, 0.5, 1, 1.5, 2, 2.5 ,2.6, 2.7, 2.8, 2.9]; % 1/sigma2 in dB
-%dB_inv_sigma2_seddik = [-1, -0.5, 0, 0.5, 1, 1.5, 1.6, 1.7, 1.8, 1.75];
-%dB_inv_sigma2_QAP = [-2, -1.5, -1, -0.5, 0, 0.5, 0.6, 0.7, 0.8, 0.85, 0.87];
+% M_to_test = 3; % 3, 4, plot the waterfall curve only for Chase combining M_to_test transmissions
+% 
+% dB_inv_sigma2_noncore = [0, 0.5, 1, 1.5, 2, 2.1, 2.3, 2.4, 2.5, 2.6, 2.7]; % 1/sigma2 in dB
+% dB_inv_sigma2_seddik = [-1, -0.5, 0, 0.5, 0.7, 0.8, 0.9, 1, 1.1, 1.2];
+% dB_inv_sigma2_QAP = [-2, -1.5, -1, -0.5, -0.3, -0.2, -0.1, 0, 0.1, 0.2];
 
 % 4 transmissions
 % M_to_test = 4; % 3, 4, plot the waterfall curve only for Chase combining M_to_test transmissions
-% dB_inv_sigma2_noncore = [-2, -1.5, -1, -0.5, 0, 0.2, 0.4, 0.6, 0.8, 1, 1.05, 1.1, 1.15]; % 1/sigma2 in dB
-% dB_inv_sigma2_seddik = [-3, -2.5, -2, -1.5, -1, -0.8, -0.6, -0.4, -0.2, 0, 0.2, 0.3, 0.4];
-% dB_inv_sigma2_QAP = [-4, -3.5, -3, -2.5, -2.2, -2, -1.8, -1.6, -1.5, -1.4, -1.38];
+% 
+% dB_inv_sigma2_noncore = [-1.5, -1, -0.5, 0, 0.3, 0.5, 0.7, 0.8, 0.9, 1.0, 1.1]; % 1/sigma2 in dB
+% dB_inv_sigma2_seddik = [-2, -1.5, -1, -0.8, -0.6, -0.4, -0.3, -0.1, 0.1, 0.2];
+% dB_inv_sigma2_QAP = [-3.5, -3, -2.5, -2.3, -2.2, -2.1, -2, -1.9, -1.8, -1.75];
 
 % 32QAM
 % load('Test_2015526214826704.MAT')
 
 % 3 transmissions
 % M_to_test = 3; % 3, 4, plot the waterfall curve only for Chase combining M_to_test transmissions
-% dB_inv_sigma2_noncore = [2, 2.5, 3, 3.5, 4, 4.2, 4.4, 4.6, 4.8, 5, 5.1, 5.2, 5.33]; % 1/sigma2 in dB
-% dB_inv_sigma2_seddik = [1.5, 2, 2.5, 3, 3.2, 3.4, 3.6, 3.8, 3.9, 4, 4.1, 4.15];
-% dB_inv_sigma2_QAP = [-0.5, 0, 0.5, 1, 1.5, 1.8, 2, 2.1, 2.2, 2.3, 2.33];
+% dB_inv_sigma2_noncore = []; % 1/sigma2 in dB
+% dB_inv_sigma2_seddik = [];
+% dB_inv_sigma2_QAP = [];
 
 % 4 transmissions
 % M_to_test = 4; % 3, 4, plot the waterfall curve only for Chase combining M_to_test transmissions
-% dB_inv_sigma2_noncore = [0.5, 1, 1.5, 2, 2.5, 3, 3.2, 3.3, 3.4, 3.5, 3.63]; % 1/sigma2 in dB
-% dB_inv_sigma2_seddik = [0, 0.5, 1, 1.4, 1.6, 1.8, 2, 2.2, 2.4, 2.6, 2.72];
-% dB_inv_sigma2_QAP = [-2.5, -2, -1.5, -1, -0.8, -0.6, -0.4, -0.2, -0.1, 0, 0.03];
+% dB_inv_sigma2_noncore = []; % 1/sigma2 in dB
+% dB_inv_sigma2_seddik = [];
+% dB_inv_sigma2_QAP = [];
 
 % 64QAM
-% load('Test_2015526214927658.MAT')
+load('./data/Test_2015526214927658.MAT')
 
 % 3 transmissions
 % M_to_test = 3; % 3, 4, plot the waterfall curve only for Chase combining M_to_test transmissions
-% dB_inv_sigma2_noncore = [4, 4.5, 5, 5.5, 6, 6.5, 7, 7.2, 7.4, 7.6, 7.8, 7.9, 8]; % 1/sigma2 in dB
-% dB_inv_sigma2_seddik = [4, 4.5, 5, 5.2, 5.4, 5.6, 5.8, 6, 6.2, 6.4, 6.6, 6.7];
-% dB_inv_sigma2_QAP = [1, 1.5, 2, 2.4, 2.6, 2.8, 3, 3.2, 3.4, 3.6, 3.8, 3.9];
+% 
+% dB_inv_sigma2_noncore = [4.5, 5, 5.5, 6, 6.5, 7, 7.2, 7.4, 7.5, 7.6, 7.7]; % 1/sigma2 in dB
+% dB_inv_sigma2_seddik = [4, 4.5, 4.8, 5, 5.2, 5.4, 5.6, 5.8, 5.9, 6];
+% dB_inv_sigma2_QAP = [1, 1.5, 2, 2.3, 2.5, 2.6, 2.7, 2.85, 3.0, 3.1];
 
 % 4 transmissions
-% M_to_test = 4; % 3, 4, plot the waterfall curve only for Chase combining M_to_test transmissions
-% dB_inv_sigma2_noncore = [2.5, 3, 3.5, 4, 4.5, 5, 5.2, 5.4, 5.6, 5.8, 6, 6.1, 6.2, 6.3, 6.4]; % 1/sigma2 in dB
-% dB_inv_sigma2_seddik = [2.5, 3, 3.4, 3.6, 3.8, 4, 4.2, 4.4, 4.6, 4.8, 5, 5.2, 5.3, 5.4];
-% dB_inv_sigma2_QAP = [-1, -0.5, 0, 0.2, 0.4, 0.6, 0.8, 1, 1.1, 1.2, 1.3];
+M_to_test = 4; % 3, 4, plot the waterfall curve only for Chase combining M_to_test transmissions
+
+dB_inv_sigma2_noncore = [3, 3.5, 4, 4.5, 5, 5.5, 5.7, 5.9, 6.1, 6.3, 6.4]; % 1/sigma2 in dB
+dB_inv_sigma2_seddik = [2.5, 3, 3.3, 3.7, 4.1, 4.3, 4.5, 4.7, 4.9, 5.1];
+dB_inv_sigma2_QAP = [-1.5, -1, -0.5, -0.2, 0, 0.2, 0.3, 0.4, 0.5, 0.6];
 
 Nbps = test_cases(1).param_origin.Nbps;
 type_mod = test_cases(1).param_origin.type_mod;
@@ -128,6 +127,7 @@ for i_sigma2 = 1 : n_sigma2_QAP
     disp(['QAP, 1/sigma2 = ', num2str(dB_inv_sigma2_QAP(i_sigma2)), 'dB, coded BER = ', num2str(codedBER_QAP(i_sigma2))]);
 end
 
+%beep;
 %% 4. Visualization
 % The BER upperbound
 h = figure;
