@@ -5,7 +5,7 @@ clc;
 addpath('./functions');
 
 %% 0. Load the data file that contains the test result
-load('Test_20157810591291.MAT') % 16QAM
+load('./data/Test_20157810591291.MAT') % 16QAM
 %load('./data/Test_201551519134039.MAT') % 32QAM
 %load('./data/Test_201551519847716') % 64QAM
 
@@ -88,40 +88,40 @@ BER_MC = reshape(cell2mat(BER_MC), M, 3 * n_d);
 cmap = [0, 0, 0 ;0.5, 0, 1; 0, 0, 1; 1, 0, 0];
 legend_item = cell(3 * M - 2, 1);
 h = figure;
-semilogy(d1, BER_analytical(1, 1 : n_d), 'k+-','linewidth', 2), hold on;
+semilogy(d1, (BER_analytical(1, 1 : n_d) + BER_analytical(1, n_d : -1 : 1)) / 2, 'k+-','linewidth', 2), hold on;
 legend_item{1} = 'TR1';
 for m = 2 : M
-    semilogy(d1, BER_analytical(m, 1 : n_d), '+-', 'Color', cmap(m, :), 'linewidth', 2), hold on;
-    semilogy(d1, BER_analytical(m, n_d + 1 : 2 * n_d), '^--', 'Color', cmap(m, :), 'linewidth', 2), hold on;
-    semilogy(d1, BER_analytical(m, 2 * n_d + 1 : 3 * n_d), 'o-.', 'Color', cmap(m, :), 'linewidth', 2), hold on;
+    semilogy(d1, (BER_analytical(m, 1 : n_d) + BER_analytical(m, n_d : - 1 : 1 )) / 2, '+-', 'Color', cmap(m, :), 'linewidth', 2), hold on;
+    semilogy(d1, (BER_analytical(m, (n_d + 1) : (2 * n_d)) + BER_analytical(m, (2 * n_d) : -1 : (n_d + 1))) / 2, '^--', 'Color', cmap(m, :), 'linewidth', 2), hold on;
+    semilogy(d1, (BER_analytical(m, 2 * n_d + 1 : 3 * n_d) + BER_analytical(m, (3 * n_d) : -1 : 2 * n_d + 1)) / 2, 'o-.', 'Color', cmap(m, :), 'linewidth', 2), hold on;
 
     legend_item{3 * m - 4} = ['NM', num2str(m)];
-    legend_item{3 * m - 3} = ['SE', num2str(m)];
+    legend_item{3 * m - 3} = ['GS', num2str(m)];
     legend_item{3 * m - 2} = ['QAP', num2str(m)];
 end
 grid on;
 set(gca, 'Fontsize', 18);
-xlabel('d_{S-R}'), ylabel('BER');
+xlabel('d_{S-R}'), ylabel('Avg. BER');
 xlim([0, 1.5]), ylim([1e-5, 1]);
 legend(legend_item, 'Location', 'northeast');
 saveas(h, ['BER_distance_upperbound_', num2str(Q), 'QAM.fig']);
 
 %% The empirical BER
 h = figure;
-semilogy(d1, BER_MC(1, 1 : n_d), 'k+-', 'linewidth', 2), hold on;
+semilogy(d1, (BER_MC(1, 1 : n_d) + BER_MC(1, n_d : -1 : 1)) / 2, 'k+-', 'linewidth', 2), hold on;
 legend_item{1} = 'TR1';
 for m = 2 : M
-    semilogy(d1, BER_MC(m, 1 : n_d), '+-', 'Color', cmap(m, :), 'linewidth', 2), hold on;
-    semilogy(d1, BER_MC(m, n_d + 1 : 2 * n_d), '^--', 'Color', cmap(m, :), 'linewidth', 2), hold on;
-    semilogy(d1, BER_MC(m, 2 * n_d + 1 : 3 * n_d), 'o-.', 'Color', cmap(m, :), 'linewidth', 2), hold on;
+    semilogy(d1, (BER_MC(m, 1 : n_d) + BER_MC(m, n_d : -1 : 1)) / 2, '+-', 'Color', cmap(m, :), 'linewidth', 2), hold on;
+    semilogy(d1, (BER_MC(m, n_d + 1 : 2 * n_d) + BER_MC(m, (2 * n_d) : -1 : (n_d + 1))) / 2, '^--', 'Color', cmap(m, :), 'linewidth', 2), hold on;
+    semilogy(d1, (BER_MC(m, 2 * n_d + 1 : 3 * n_d) + BER_MC(m, (3 * n_d) : -1 : (2 * n_d + 1))) / 2, 'o-.', 'Color', cmap(m, :), 'linewidth', 2), hold on;
 
     legend_item{3 * m - 4} = ['NM', num2str(m)];
-    legend_item{3 * m - 3} = ['SE', num2str(m)];
+    legend_item{3 * m - 3} = ['GS', num2str(m)];
     legend_item{3 * m - 2} = ['QAP', num2str(m)];
 end
 grid on;
 set(gca, 'Fontsize', 18);
-xlabel('d_{S-R}'), ylabel('BER');
+xlabel('d_{S-R}'), ylabel('Avg. BER');
 xlim([0, 1.5]), ylim([1e-5, 1]);
 legend(legend_item, 'Location', 'northeast');
 saveas(h, ['BER_distance_MonteCarlo_', num2str(Q), 'QAM.fig']);

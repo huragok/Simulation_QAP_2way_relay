@@ -12,30 +12,15 @@ addpath('./functions');
 % M_to_test = 3; % 3, 4, plot the waterfall curve only for Chase combining M_to_test transmissions
 % 
 % dB_inv_sigma2_noncore = [0, 0.5, 1, 1.5, 2, 2.1, 2.3, 2.4, 2.5, 2.6, 2.7]; % 1/sigma2 in dB
-% dB_inv_sigma2_seddik = [-1, -0.5, 0, 0.5, 0.7, 0.8, 0.9, 1, 1.1, 1.2];
+% dB_inv_sigma2_seddik = [-1.5, -1, -0.5, -0.2, 0, 0.2, 0.3, 0.4, 0.5, 0.6];
 % dB_inv_sigma2_QAP = [-2, -1.5, -1, -0.5, -0.3, -0.2, -0.1, 0, 0.1, 0.2];
 
 % 4 transmissions
 % M_to_test = 4; % 3, 4, plot the waterfall curve only for Chase combining M_to_test transmissions
 % 
 % dB_inv_sigma2_noncore = [-1.5, -1, -0.5, 0, 0.3, 0.5, 0.7, 0.8, 0.9, 1.0, 1.1]; % 1/sigma2 in dB
-% dB_inv_sigma2_seddik = [-2, -1.5, -1, -0.8, -0.6, -0.4, -0.3, -0.1, 0.1, 0.2];
+% dB_inv_sigma2_seddik = [-3, -2.5, -2, -1.7, -1.5, -1.4, -1.2, -1.1, -1, -0.9];
 % dB_inv_sigma2_QAP = [-3.5, -3, -2.5, -2.3, -2.2, -2.1, -2, -1.9, -1.8, -1.75];
-
-% 32QAM
-% load('Test_2015526214826704.MAT')
-
-% 3 transmissions
-% M_to_test = 3; % 3, 4, plot the waterfall curve only for Chase combining M_to_test transmissions
-% dB_inv_sigma2_noncore = []; % 1/sigma2 in dB
-% dB_inv_sigma2_seddik = [];
-% dB_inv_sigma2_QAP = [];
-
-% 4 transmissions
-% M_to_test = 4; % 3, 4, plot the waterfall curve only for Chase combining M_to_test transmissions
-% dB_inv_sigma2_noncore = []; % 1/sigma2 in dB
-% dB_inv_sigma2_seddik = [];
-% dB_inv_sigma2_QAP = [];
 
 % 64QAM
 load('./data/Test_2015526214927658.MAT')
@@ -44,14 +29,14 @@ load('./data/Test_2015526214927658.MAT')
 % M_to_test = 3; % 3, 4, plot the waterfall curve only for Chase combining M_to_test transmissions
 % 
 % dB_inv_sigma2_noncore = [4.5, 5, 5.5, 6, 6.5, 7, 7.2, 7.4, 7.5, 7.6, 7.7]; % 1/sigma2 in dB
-% dB_inv_sigma2_seddik = [4, 4.5, 4.8, 5, 5.2, 5.4, 5.6, 5.8, 5.9, 6];
+% dB_inv_sigma2_seddik = [2.5, 3, 3.5, 3.8, 4, 4.2, 4.3, 4.4, 4.5, 4.6];
 % dB_inv_sigma2_QAP = [1, 1.5, 2, 2.3, 2.5, 2.6, 2.7, 2.85, 3.0, 3.1];
 
 % 4 transmissions
 M_to_test = 4; % 3, 4, plot the waterfall curve only for Chase combining M_to_test transmissions
 
 dB_inv_sigma2_noncore = [3, 3.5, 4, 4.5, 5, 5.5, 5.7, 5.9, 6.1, 6.3, 6.4]; % 1/sigma2 in dB
-dB_inv_sigma2_seddik = [2.5, 3, 3.3, 3.7, 4.1, 4.3, 4.5, 4.7, 4.9, 5.1];
+dB_inv_sigma2_seddik = [1, 1.5, 1.8, 2, 2.3, 2.5, 2.7, 2.8, 2.9, 3.1];
 dB_inv_sigma2_QAP = [-1.5, -1, -0.5, -0.2, 0, 0.2, 0.3, 0.4, 0.5, 0.6];
 
 Nbps = test_cases(1).param_origin.Nbps;

@@ -31,4 +31,13 @@ else
     error('Constellation size must be 16, 32 or 64.');
 end
 
-map = [1 : Q; repmat(seddik, M - 1, 1)];
+map = zeros(M, Q);
+flag = true;
+for m = 1 : M
+    if flag
+        map(m, :) = 1 : Q;
+    else
+        map(m, :) = seddik;
+    end
+    flag = ~flag;
+end

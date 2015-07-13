@@ -5,8 +5,8 @@ clc;
 addpath('./functions');
 
 %% 0. Load the data file that contains the test result
-load('Test_201578104535979.MAT') % 16QAM
-%load('./data/Test_201551521628127') % 32QAM
+%load('./data/Test_201578104535979.MAT') % 16QAM
+load('Test_201571310354702') % 32QAM
 %load('./data/Test_201551521162579') % 64QAM
 
 
@@ -97,13 +97,13 @@ for m = 2 : M
     semilogy(dB_inv_sigma2, BER_analytical(m, 2 * n_sigma2 + 1 : 3 * n_sigma2), 'o-.', 'Color', cmap(m, :), 'linewidth', 2), hold on;
 
     legend_item{3 * m - 4} = ['NM', num2str(m)];
-    legend_item{3 * m - 3} = ['SE', num2str(m)];
+    legend_item{3 * m - 3} = ['GS', num2str(m)];
     legend_item{3 * m - 2} = ['QAP', num2str(m)];
 end
 grid on;
 set(gca, 'Fontsize', 18);
 xlabel('1/\sigma^2(dB)'), ylabel('BER');
-ylim([1e-6, 1]), xlim([0, 25])
+ylim([1e-6, 1]), xlim([5, 25])
 legend(legend_item, 'Location', 'northeast');
 saveas(h, ['BER_noise_power_upperbound_', num2str(Q), 'QAM.fig']);
 
@@ -117,12 +117,12 @@ for m = 2 : M
     semilogy(dB_inv_sigma2, BER_MC(m, 2 * n_sigma2 + 1 : 3 * n_sigma2), 'o-.', 'Color', cmap(m, :), 'linewidth', 2), hold on;
 
     legend_item{3 * m - 4} = ['NM', num2str(m)];
-    legend_item{3 * m - 3} = ['SE', num2str(m)];
+    legend_item{3 * m - 3} = ['GS', num2str(m)];
     legend_item{3 * m - 2} = ['QAP', num2str(m)];
 end
 grid on;
 set(gca, 'Fontsize', 18);
 xlabel('1/\sigma^2(dB)'), ylabel('BER');
-ylim([1e-6, 1]), xlim([0, 25])
+ylim([1e-6, 1]), xlim([5, 25])
 legend(legend_item, 'Location', 'northeast');
 saveas(h, ['BER_noise_power_MonteCarlo_', num2str(Q), 'QAM.fig']);
