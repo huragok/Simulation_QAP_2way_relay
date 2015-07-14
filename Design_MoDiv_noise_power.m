@@ -8,7 +8,7 @@ addpath('./functions');
 
 %% 1. Simulation settings
 % Constellation specification
-Nbps = 5; % 4, 5, 6
+Nbps = 6; % 4, 5, 6
 type_mod = 'QAM';
 
 % Node S, R, D power, channel power and noise power specification
@@ -20,7 +20,7 @@ type_mod = 'QAM';
 % We also assume that the channel and noise are stationary across
 % transmissions
 
-dB_inv_sigma2 = [6 : 2 : 18]; % 1/sigma2 in dB
+dB_inv_sigma2 = [8:2:20]; % 1/sigma2 in dB
 p_Pr = 0.5; % this portion of the total power of 4 is allocated to the relay. The rest are divided eqaully between the 2 end nodes
 d = [0.5, 0.5]; % Distance between S and R, R and D
 
@@ -28,7 +28,7 @@ nu = 3; % Pathloss factor
 M = 4; % Number of retransmission
 
 epsilon = 0.01; % Tolerance to control the error of scaling the 2 cost matrices to integer
-n_itr = 1000000; % Number of iterations for the tabu QAP solver
+n_itr = 100000; % Number of iterations for the tabu QAP solver
 
 %% 2. Initialization: generate and save all test cases
 test_cases = construct_test_cases(Nbps, type_mod, dB_inv_sigma2, p_Pr, d, nu, M, true);

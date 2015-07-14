@@ -17,4 +17,4 @@ grid on;
 set(gca, 'Fontsize', 18);
 xlabel('1/\sigma^2(dB)'), ylabel('Coded BER');
 xlim([-4, 8]), ylim([1e-5, 1])
-legend({'NM3', 'GS3', 'QAP3', 'NM4', 'GS4', 'QAP4'}, 'Location', 'southwest');
+legend({'NM2', 'GS2', 'QAP2', 'NM3', 'GS3', 'QAP3'}, 'Location', 'southwest');
