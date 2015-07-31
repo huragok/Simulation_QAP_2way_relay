@@ -26,11 +26,11 @@ addpath('./functions');
 load('Test_201573023658.mat')
 
 % 2 transmissions
-M_to_test = 2; % 3, 4, plot the waterfall curve only for Chase combining M_to_test transmissions
-
-dB_inv_sigma2_noncore = [7, 7.5, 8, 8.5, 9, 9.4, 9.6, 9.8, 10, 10.1]; % 1/sigma2 in dB
-dB_inv_sigma2_core = [5.5, 6, 6.5, 7, 7.4, 7.6, 7.8, 8, 8.2, 8.4];
-dB_inv_sigma2_QAP = [4.5, 5, 5.5, 6, 6.3, 6.5, 6.6, 6.7, 6.75];
+% M_to_test = 2; % 3, 4, plot the waterfall curve only for Chase combining M_to_test transmissions
+% 
+% dB_inv_sigma2_noncore = [7, 7.5, 8, 8.5, 9, 9.4, 9.6, 9.8, 10, 10.1]; % 1/sigma2 in dB
+% dB_inv_sigma2_core = [5.5, 6, 6.5, 7, 7.4, 7.6, 7.8, 8, 8.2, 8.4];
+% dB_inv_sigma2_QAP = [4.5, 5, 5.5, 6, 6.3, 6.5, 6.6, 6.7, 6.75];
 
 % 3 transmissions
 % M_to_test = 3; % 3, 4, plot the waterfall curve only for Chase combining M_to_test transmissions
@@ -41,17 +41,17 @@ dB_inv_sigma2_QAP = [4.5, 5, 5.5, 6, 6.3, 6.5, 6.6, 6.7, 6.75];
 
 % 4 transmissions
 % M_to_test = 4; % 3, 4, plot the waterfall curve only for Chase combining M_to_test transmissions
-
+% 
 % dB_inv_sigma2_noncore = [3, 3.5, 4, 4.5, 5, 5.5, 5.7, 5.9, 6.1, 6.2, 6.3]; % 1/sigma2 in dB
 % dB_inv_sigma2_core = [-0.5, 0, 0.5, 1, 1.3, 1.5, 1.7, 1.8, 1.9, 2];
 % dB_inv_sigma2_QAP = [-1.5, -1, -0.5, 0, 0.2, 0.4, 0.5, 0.6, 0.7];
 
 % 5 transmissions
-% M_to_test = 5;
-% 
-% dB_inv_sigma2_noncore = [2.5, 3, 3.5, 4, 4.4, 4.6, 4.8, 5, 5.2, 5.3]; % 1/sigma2 in dB
-% dB_inv_sigma2_core = [-2, -1.5, -1, -0.7, -0.5, -0.3, -0.2, -0.1, 0];
-% dB_inv_sigma2_QAP = [-2.5, -2, -1.5, -1.3, -1.2, -1.1, -1, -0.9, -0.8];
+M_to_test = 5;
+
+dB_inv_sigma2_noncore = [2.5, 3, 3.5, 4, 4.4, 4.6, 4.8, 5, 5.2, 5.3]; % 1/sigma2 in dB
+dB_inv_sigma2_core = [-2, -1.5, -1, -0.7, -0.5, -0.3, -0.2, -0.1, 0];
+dB_inv_sigma2_QAP = [-2.5, -2, -1.5, -1.3, -1.2, -1.1, -1, -0.9, -0.8];
 
 Nbps = test_cases(1).param_origin.Nbps;
 type_mod = test_cases(1).param_origin.type_mod;

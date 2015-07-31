@@ -7,7 +7,7 @@ addpath('./functions');
 %% 0. Load the data file that contains the test result
 %load('./data/Test_201578104535979.MAT') % 16QAM
 %load('Test_201571310354702') % 32QAM
-load('Test_201573020554265') % 64QAM
+load('Test_201573141041749') % 64QAM
 
 
 %% 1. Simulation settings
@@ -87,7 +87,7 @@ BER_MC = reshape(cell2mat(BER_MC), M, 3 * n_sigma2);
 save(['BER_noise_power_', num2str(Q), 'QAM.mat'], 'dB_inv_sigma2', 'BER_analytical', 'BER_MC');
 %% Visualization
 % The BER upperbound
-cmap = [0, 0, 0 ;0.5, 0, 1; 0, 0, 1; 1, 0, 0];
+cmap = [0, 0, 0; 0, 0, 1; 1, 0, 0];
 legend_item = cell(3 * M - 2, 1);
 h = figure;
 semilogy(dB_inv_sigma2, BER_analytical(1, 1 : n_sigma2), 'k+-', 'linewidth', 2), hold on;
@@ -104,7 +104,7 @@ end
 grid on;
 set(gca, 'Fontsize', 18);
 xlabel('1/\sigma^2(dB)'), ylabel('BER');
-ylim([1e-6, 10]), xlim([8, 28])
+ylim([1e-6, 10]), xlim([2, 28])
 legend(legend_item, 'Location', 'northeast');
 saveas(h, ['BER_noise_power_upperbound_', num2str(Q), 'QAM.fig']);
 
@@ -124,6 +124,6 @@ end
 grid on;
 set(gca, 'Fontsize', 18);
 xlabel('1/\sigma^2(dB)'), ylabel('BER');
-ylim([1e-6, 10]), xlim([8, 28])
+ylim([1e-6, 10]), xlim([2, 28])
 legend(legend_item, 'Location', 'northeast');
 saveas(h, ['BER_noise_power_MonteCarlo_', num2str(Q), 'QAM.fig']);
