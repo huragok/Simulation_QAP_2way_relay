@@ -6,9 +6,9 @@ addpath('./functions');
 
 load('Test_201573023658.mat')
 M_to_test = 6;
-dB_inv_sigma2_noncore = [12];
-dB_inv_sigma2_core = [12];
-dB_inv_sigma2_QAP = [12];
+dB_inv_sigma2_noncore = [3.5, 4, 4.5, 4.8, 5, 5.5, 6, 6.1, 6.2, 6.5, 7, 7.4, 7.5, 8, 8.5, 9, 9.5, 9.8, 11, 12.5, 12.7, 13.5, 14, 14.2, 14.4];
+dB_inv_sigma2_core = [-1, -0.5, -0.3, 0, 0.4, 0.5, 1, 1.5, 2, 2.2, 3, 3.5, 4, 4.5, 4.8, 5, 6.5, 7, 7.5, 8, 8.3, 11, 12.5, 12.7, 13.5, 14, 14.2, 14.4];
+dB_inv_sigma2_QAP = [-1, -0.5, 0, 0.5, 1, 1.5, 2, 2.2, 2.5, 2.6, 3, 5, 5.5, 6, 6.5, 6.7, 7, 10, 12.5, 12.7, 13.5, 14, 14.2, 14.4];
 
 Nbps = test_cases(1).param_origin.Nbps;
 type_mod = test_cases(1).param_origin.type_mod;
