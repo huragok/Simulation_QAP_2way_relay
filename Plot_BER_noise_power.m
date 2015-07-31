@@ -46,7 +46,7 @@ beta_rd = d2 ^ -nu;
 g = sqrt(Pr ./ (beta_sr * Pt + beta_rd * Pt + sigma_sqr_r)); % The power normalization factor
 
 map_noncore = get_map_noncore(Q, M);
-map_seddik = get_map_seddik(Q, M);
+map_core = get_map_core(Q, M);
 map_QAP = cell(n_sigma2, 1);
 for i_sigma2 = 1 : n_sigma2
     map_QAP{i_sigma2} = [1 : Q; test_cases(i_sigma2).map];
@@ -62,22 +62,22 @@ for i_sigma2 = 1 : n_sigma2
     % Compute the bit error rate using our analytical upper bound
     BER_analytical{i_sigma2} = zeros(M, 3);
     BER_analytical{i_sigma2}(:, 1) = get_BER_upper_bound(constellation, map_noncore, beta_sr, beta_rd, g(i_sigma2), sigma_sqr_d(i_sigma2), sigma_sqr_r(i_sigma2));
-    BER_analytical{i_sigma2}(:, 2) = get_BER_upper_bound(constellation, map_seddik, beta_sr, beta_rd, g(i_sigma2), sigma_sqr_d(i_sigma2), sigma_sqr_r(i_sigma2));
+    BER_analytical{i_sigma2}(:, 2) = get_BER_upper_bound(constellation, map_core, beta_sr, beta_rd, g(i_sigma2), sigma_sqr_d(i_sigma2), sigma_sqr_r(i_sigma2));
     BER_analytical{i_sigma2}(:, 3) = get_BER_upper_bound(constellation, map_QAP{i_sigma2}, beta_sr, beta_rd, g(i_sigma2), sigma_sqr_d(i_sigma2), sigma_sqr_r(i_sigma2));
     
     % Compute the bit error rate using Monte-Carlo simulation
     BER_MC{i_sigma2} = zeros(M, 3);
     BER_MC{i_sigma2}(:, 1) = get_BER(constellation, map_noncore, beta_sr, beta_rd, Pr, Pt, Pt, sigma_sqr_d(i_sigma2), sigma_sqr_r(i_sigma2), N_per_batch, N_batch, seed);
-    BER_MC{i_sigma2}(:, 2) = get_BER(constellation, map_seddik, beta_sr, beta_rd, Pr, Pt, Pt, sigma_sqr_d(i_sigma2), sigma_sqr_r(i_sigma2), N_per_batch, N_batch, seed);
+    BER_MC{i_sigma2}(:, 2) = get_BER(constellation, map_core, beta_sr, beta_rd, Pr, Pt, Pt, sigma_sqr_d(i_sigma2), sigma_sqr_r(i_sigma2), N_per_batch, N_batch, seed);
     BER_MC{i_sigma2}(:, 3) = get_BER(constellation, map_QAP{i_sigma2}, beta_sr, beta_rd, Pr, Pt, Pt, sigma_sqr_d(i_sigma2), sigma_sqr_r(i_sigma2), N_per_batch, N_batch, seed);
     
     toc;
     disp(['BER simulation for 1/sigma2 = ', num2str(dB_inv_sigma2(i_sigma2)), 'dB completed.'])
     disp([' - BER upper bounds, non-CoRe: ', num2str(BER_analytical{i_sigma2}(:, 1)')])
-    disp([' - BER upper bounds, Seddik: ', num2str(BER_analytical{i_sigma2}(:, 2)')])
+    disp([' - BER upper bounds, CoRe: ', num2str(BER_analytical{i_sigma2}(:, 2)')])
     disp([' - BER upper bounds, QAP: ', num2str(BER_analytical{i_sigma2}(:, 3)')])
     disp([' - BER emperical, non-CoRe: ', num2str(BER_MC{i_sigma2}(:, 1)')])
-    disp([' - BER emperical, Seddik: ', num2str(BER_MC{i_sigma2}(:, 2)')])
+    disp([' - BER emperical, CoRe: ', num2str(BER_MC{i_sigma2}(:, 2)')])
     disp([' - BER emperical, QAP: ', num2str(BER_MC{i_sigma2}(:, 3)')])
 end
 

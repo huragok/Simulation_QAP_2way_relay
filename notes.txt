@@ -33,3 +33,9 @@ BER vs Distance
 EMI vs noise power
 64QAM Test_2015720202640335
 
+codedBER vs Power using EMI results
+Test_20157249397252 64QAM
+
+EMI vs power using BER results
+Test_201572411838534 64QAM
+
