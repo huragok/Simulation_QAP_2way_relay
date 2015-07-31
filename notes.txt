@@ -39,3 +39,13 @@ Test_20157249397252 64QAM
 EMI vs power using BER results
 Test_201572411838534 64QAM
 
+BER vs power with new CoRe scheme
+Test_201573020554265 64QAM (8:2:20dB, TRANS 0~3)
+
+EMI vs power with new CoRe scheme
+Test_2015730212237054 (-20:2:16dB, TRANS 0~3)
+
+Coded BER
+Test_201573021466311 M = 4, 4.5dB
+Test_201573023116154 M = 6, 0dB
+Test_201573023658 M = 6, 4.5dB
