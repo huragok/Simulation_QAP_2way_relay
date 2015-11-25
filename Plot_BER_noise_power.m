@@ -5,10 +5,11 @@ clc;
 addpath('./functions');
 
 %% 0. Load the data file that contains the test result
-%load('./data/Test_201578104535979.MAT') % 16QAM
-%load('Test_201571310354702') % 32QAM
-load('Test_201573141041749') % 64QAM
 
+% load('Test_2015916132547305.mat') % 16QAM, retransmission 2 and 3: 2 : 2 : 16
+% load('Test_2015916143412484.mat') % 16QAM, retransmission 4 and 5: -2 : 1.5 : 10
+% load('Test_2015916152041349.mat') % 64QAM, retransmission 2 and 3 6 : 2 : 20
+load('Test_201591618110915.mat')% 64QAM, retransmission 4 and 5 1 : 1.5 : 13
 
 %% 1. Simulation settings
 N_batch = 5; % Number of batches,
@@ -60,10 +61,21 @@ for i_sigma2 = 1 : n_sigma2
     tic
 
     % Compute the bit error rate using our analytical upper bound
-    BER_analytical{i_sigma2} = zeros(M, 3);
+    BER_analytical{i_sigma2} = zeros(M, 4);
     BER_analytical{i_sigma2}(:, 1) = get_BER_upper_bound(constellation, map_noncore, beta_sr, beta_rd, g(i_sigma2), sigma_sqr_d(i_sigma2), sigma_sqr_r(i_sigma2));
     BER_analytical{i_sigma2}(:, 2) = get_BER_upper_bound(constellation, map_core, beta_sr, beta_rd, g(i_sigma2), sigma_sqr_d(i_sigma2), sigma_sqr_r(i_sigma2));
     BER_analytical{i_sigma2}(:, 3) = get_BER_upper_bound(constellation, map_QAP{i_sigma2}, beta_sr, beta_rd, g(i_sigma2), sigma_sqr_d(i_sigma2), sigma_sqr_r(i_sigma2));
+    
+    % Evaluate the GLB of BER upper bound
+    E = test_cases(i_sigma2).param_derived.E;
+    xpcd_PBER = get_hamming_dist(Nbps) / 2 / Q / Nbps; % Initialize the expected pairwise BER before any transmission
+    xpcd_PBER = xpcd_PBER .* E; % The expected pairwise BER after the first transmission (Gray mapping)
+    BER_analytical{i_sigma2}(1, 4) = get_GLB(xpcd_PBER, E);
+    for m = 2 : M
+        xpcd_PBER = get_xpcd_PBER(xpcd_PBER, E, map_QAP{i_sigma2}(m, :));
+        BER_analytical{i_sigma2}(m, 4) = get_GLB(xpcd_PBER, E);
+    end
+    
     
     % Compute the bit error rate using Monte-Carlo simulation
     BER_MC{i_sigma2} = zeros(M, 3);
@@ -76,19 +88,20 @@ for i_sigma2 = 1 : n_sigma2
     disp([' - BER upper bounds, non-CoRe: ', num2str(BER_analytical{i_sigma2}(:, 1)')])
     disp([' - BER upper bounds, CoRe: ', num2str(BER_analytical{i_sigma2}(:, 2)')])
     disp([' - BER upper bounds, QAP: ', num2str(BER_analytical{i_sigma2}(:, 3)')])
+    disp([' - BER upper bounds, GLB: ', num2str(BER_analytical{i_sigma2}(:, 4)')])
     disp([' - BER emperical, non-CoRe: ', num2str(BER_MC{i_sigma2}(:, 1)')])
     disp([' - BER emperical, CoRe: ', num2str(BER_MC{i_sigma2}(:, 2)')])
     disp([' - BER emperical, QAP: ', num2str(BER_MC{i_sigma2}(:, 3)')])
 end
 
-BER_analytical = reshape(cell2mat(BER_analytical), M, 3 * n_sigma2);
+BER_analytical = reshape(cell2mat(BER_analytical), M, 4 * n_sigma2);
 BER_MC = reshape(cell2mat(BER_MC), M, 3 * n_sigma2);
 
 save(['BER_noise_power_', num2str(Q), 'QAM.mat'], 'dB_inv_sigma2', 'BER_analytical', 'BER_MC');
 %% Visualization
 % The BER upperbound
-cmap = [0, 0, 0; 0, 0, 1; 1, 0, 0];
-legend_item = cell(3 * M - 2, 1);
+cmap = [0, 0, 0; 0, 0, 1; 1, 0, 0; 0, 1, 0; 1, 1, 0];
+legend_item = cell(4 * M - 3, 1);
 h = figure;
 semilogy(dB_inv_sigma2, BER_analytical(1, 1 : n_sigma2), 'k+-', 'linewidth', 2), hold on;
 legend_item{1} = 'TR0';
@@ -96,10 +109,12 @@ for m = 2 : M
     semilogy(dB_inv_sigma2, BER_analytical(m, 1 : n_sigma2), '+-', 'Color', cmap(m, :), 'linewidth', 2);
     semilogy(dB_inv_sigma2, BER_analytical(m, n_sigma2 + 1 : 2 * n_sigma2), '^--', 'Color', cmap(m, :), 'linewidth', 2), hold on;
     semilogy(dB_inv_sigma2, BER_analytical(m, 2 * n_sigma2 + 1 : 3 * n_sigma2), 'o-.', 'Color', cmap(m, :), 'linewidth', 2), hold on;
+    semilogy(dB_inv_sigma2, BER_analytical(m, 3 * n_sigma2 + 1 : 4 * n_sigma2), ':', 'Color', cmap(m, :), 'linewidth', 2), hold on;
 
-    legend_item{3 * m - 4} = ['NM', num2str(m-1)];
-    legend_item{3 * m - 3} = ['CR', num2str(m-1)];
-    legend_item{3 * m - 2} = ['QAP', num2str(m-1)];
+    legend_item{4 * m - 6} = ['NM', num2str(m-1)];
+    legend_item{4 * m - 5} = ['CR', num2str(m-1)];
+    legend_item{4 * m - 4} = ['QAP', num2str(m-1)];
+    legend_item{4 * m - 3} = ['GLB', num2str(m-1)];
 end
 grid on;
 set(gca, 'Fontsize', 18);

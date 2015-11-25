@@ -1,10 +1,10 @@
 *.asv
 *.data
 *.mat
-*.mexw64
-*.mexw32
 *.mexglx
 *.fig
 *.pdb
 *.pdf
 *.eps
+*.xml
+*.mexw64
