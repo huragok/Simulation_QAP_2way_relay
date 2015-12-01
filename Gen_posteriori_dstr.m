@@ -104,7 +104,7 @@ end
 channel_samples.appendChild(success);
 
 % The failure part
-failure = doc.createElement('failure');
+failure = doc.createElement('Failure');
 for i_failure = 1 : size(h_failure, 1)
     entry = doc.createElement('Entry');
     entry.appendChild(doc.createTextNode(num2str([real(h_failure(i_failure, :)), imag(h_failure(i_failure, :)), real(g_failure(i_failure, :)), imag(g_failure(i_failure, :))], '%-f ')));
