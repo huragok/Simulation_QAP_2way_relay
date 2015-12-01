@@ -7,8 +7,14 @@ addpath('functions');
 %% 1. Simulation settings
 % 64QAM
 load('./data/Test_201573023658.mat');
-dB_inv_sigma2 = -0.2; % 13.5, 5.8, 2, -0.2
-N = 4; % 1, 2, 3, 4
+% Non-block fading
+% flag_BF = false;
+% dB_inv_sigma2 = -0.2; % 13.5, 5.8, 2, -0.2
+% N = 4; % 1, 2, 3, 4
+% block fading
+flag_BF = true;
+dB_inv_sigma2 = 12.5; % 13, 5, 1.5, -0.7
+N = 1; % 1, 2, 3, 4
 
 Nbps = test_cases(1).param_origin.Nbps;
 type_mod = test_cases(1).param_origin.type_mod;
@@ -17,7 +23,7 @@ d = [test_cases(1).param_origin.d1, test_cases(1).param_origin.d2]; % Distance b
 nu = test_cases(1).param_origin.nu; % Pathloss factor
 M = test_cases(1).param_origin.M; % Total number of transmissions
 
-max_frame = 50;
+max_frame = 2000;
 iter_max = 5;
 coding_rate = 3 / 4;
 nldpc = 2400;
@@ -38,7 +44,12 @@ map  = [1 : Q; test_cases(1).map];
 sigma2 = 10 .^ (-dB_inv_sigma2 / 10); % The noise covariance at all nodes
 
 %% 3. Generate the channel samples corresponding to the successful transmission and the failed transmissions
-[h_success, g_success, h_failure, g_failure] = get_channel_samples(N, constellation, map, beta_sr, beta_rd, Pr, Pt, Pt, sigma2, sigma2, max_frame, iter_max, coding_rate, nldpc, seed);
+if flag_BF
+    [h_success, g_success, h_failure, g_failure] = get_channel_samples_bf(N, constellation, map, beta_sr, beta_rd, Pr, Pt, Pt, sigma2, sigma2, max_frame, iter_max, coding_rate, nldpc, seed);
+else
+    [h_success, g_success, h_failure, g_failure] = get_channel_samples(N, constellation, map, beta_sr, beta_rd, Pr, Pt, Pt, sigma2, sigma2, max_frame, iter_max, coding_rate, nldpc, seed);
+end
+
 
 %% 4. Visualization, plot the mean and covaraince matrix
 points_success = [abs(h_success), abs(g_success)];
@@ -112,7 +123,12 @@ for i_failure = 1 : size(h_failure, 1)
 end
 channel_samples.appendChild(failure);
 
-xmlwrite(['samples_', num2str(N), '.xml'], doc);
+if flag_BF
+    xmlwrite(['samples_', num2str(N), '_BF.xml'], doc);
+else
+    xmlwrite(['samples_', num2str(N), '.xml'], doc);
+end
+
 %% 6. In the low dimensional case, a 2-D cluster visualization
 if 0
 %if N == 1
