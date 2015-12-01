@@ -35,51 +35,29 @@ if (n.success >= 2000 && n.failure >= 2000) {
 }
 
 # Log-likelihood test on the parameters based on Wilks's theorem
-## Likelyhood ratio test to test the covaiance matrix under unknown mean and MVN assumption (Pinto, Letícia Pereira, and Sueli Aparecida Mingoti. "ON HYPOTHESIS TESTS FOR COVARIANCE MATRICES UNDER MULTIVARIATE NORMALITY." Pesquisa Operacional 35.1 (2015): 123-142.)
-covTest <- function(data, covTarget, sl = 0.05) {
+paramTest <- function(data, meanTarget, covTarget, sl = 0.05) {
     n <- nrow(data)
     p <- ncol(data)
     
-    mu <- colMeans(data)
-    A <- (n - 1) * cov(data)
+    mu <- colMeans(data) # ML estimation of the mean
+    Sigma <- cov(data) * (n - 1) / n # ML estimation of the covariance
     
-    matTmp <- solve(covTarget, A)
-    W <- -p * n + p * n * log(n) - n * log(det(matTmp)) + sum(diag(matTmp)) # The test statistic 
+    data.minusMeanTarget <- data - matrix(rep(1, n) %x% meanTarget, ncol = p, byrow = TRUE) # Subtract meanTarget from all samples
+    W <- -n * (log(det(Sigma)) - log(det(covTarget))) - n * p + sum(diag(solve(covTarget, t(data.minusMeanTarget) %*% data.minusMeanTarget)))# The test statistic -2 * log(Lambda) 
     
     result <- list();
-    result$name <- "Log-likelihood covariance test"
-    result$p.value <- 1 - pchisq(W, p * (p + 1) / 2)
-    if (result$p.value < sl) result$Result <- "Covariance matrix of the samples does not match the target covariance matrix." # Reject
-    else result$Result <- "Covariance matrix of the samples matches the target covariance matrix." # Accept
+    result$name <- "Log-likelihood mean and covariance test"
+    result$p.value <- 1 - pchisq(W, p * (p + 1) / 2 + p)
+    if (result$p.value < sl) result$Result <- "Mean and covariance of the samples do not match the target." # Reject
+    else result$Result <- "Mean and covariance of the samples match the target." # Accept
     
     return (result)
 }
 
+meanTarget <- -rep(0, 4 * N)
 covTarget <- beta / 2 * diag(4 * N)
-result.failure.cov <- covTest(samples.failure, covTarget)
-#result.complete.cov <- covTest(samples.complete, covTarget)
-
-## Mean test under unknown covariance matrix and MVN assumption (Ruey S. Tsay. "Inference about sample mean", lecture notes, Business 41912, The University of Chicago Booth School of Business, Spring Quarter 2010.)
-meanTest <- function(data, meanTarget, sl = 0.05) {
-    n <- nrow(data)
-    p <- ncol(data)
-    
-    SigmaEst <- cov(data)
-    SigmaTarget <- t(data) %*% data / (n - 1)
-    W <- -n * log(det(SigmaEst) / det(SigmaTarget))
-    
-    result <- list();
-    result$name <- "Log-likelihood mean test"
-    result$p.value <- 1 - pchisq(W, p)
-    if (result$p.value < sl) result$Result <- "Mean vector of the samples does not match the target mean vector." # Reject
-    else result$Result <- "Mean vector of the samples matches the target mean vector." # Accept
-    
-    return (result)
-}
-
-meanTarget <- rep(0, 4 * N)
-result.failure.mean <- meanTest(samples.failure, meanTarget)
-#result.complete.mean <- meanTest(samples.complete, meanTarget)
+result.failure.param <- paramTest(samples.failure, meanTarget, covTarget)
+#result.complete.param <- paramTest(samples.complete, meanTarget, covTarget)
 
 # Output
 cat("N =", N, ", n.failure =", n.failure, ", n.success =", n.success, ", beta =", beta, "\n")
@@ -88,5 +66,4 @@ print(result.failure.mardia)
 print(result.failure.hz)
 print(result.failure.royston)
 print("Parameter tests ***************************************************")
-print(result.failure.cov)
-print(result.failure.mean)
+print(result.failure.param)
