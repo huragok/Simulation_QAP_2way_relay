@@ -7,8 +7,8 @@ addpath('functions');
 %% 1. Simulation settings
 % 64QAM
 load('./data/Test_201573023658.mat');
-dB_inv_sigma2 = 13.5; % 13.5, 5.8, 2, -0.2
-N = 1; % 1, 2, 3, 4
+dB_inv_sigma2 = -0.2; % 13.5, 5.8, 2, -0.2
+N = 4; % 1, 2, 3, 4
 
 Nbps = test_cases(1).param_origin.Nbps;
 type_mod = test_cases(1).param_origin.type_mod;
@@ -17,7 +17,7 @@ d = [test_cases(1).param_origin.d1, test_cases(1).param_origin.d2]; % Distance b
 nu = test_cases(1).param_origin.nu; % Pathloss factor
 M = test_cases(1).param_origin.M; % Total number of transmissions
 
-max_frame = 20;
+max_frame = 50;
 iter_max = 5;
 coding_rate = 3 / 4;
 nldpc = 2400;
@@ -112,9 +112,10 @@ for i_failure = 1 : size(h_failure, 1)
 end
 channel_samples.appendChild(failure);
 
-xmlwrite('samples.xml', doc);
+xmlwrite(['samples_', num2str(N), '.xml'], doc);
 %% 6. In the low dimensional case, a 2-D cluster visualization
-if N == 1
+if 0
+%if N == 1
     figure;
     scatter(points_success(:, 1), points_success(:, 2), 'r^'), hold on;
     scatter(points_failure(:, 1), points_failure(:, 2), 'bo');
