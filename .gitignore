@@ -10,3 +10,4 @@
 *.mexw64
 *~
 *#
+.Rhistory
