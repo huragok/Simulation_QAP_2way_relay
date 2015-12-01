@@ -2,7 +2,7 @@ library(MVN)
 library(XML)
 
 # Import the data
-data <- xmlParse("samples.xml")
+data <- xmlParse("samples_4.xml")
 xml.data <- xmlToList(data)
 
 N <- as.numeric(xml.data$.attrs[["N"]])
@@ -15,20 +15,20 @@ samples.complete <- rbind(samples.success, samples.failure)
 
 # MVN Tests (Korkmaz, Selcuk, Dincer Goksuluk, and Gokmen Zararsiz. "MVN: An R Package for Assessing Multivariate Normality." A peer-reviewed, open-access publication of the R Foundation for Statistical Computing (2014): 151.)
 ## Mardia's test
-pdf("qqplotMardia.pdf")
+pdf(paste("qqplotMardia_", N, ".pdf", sep = ""))
 result.failure.mardia <- mardiaTest(samples.failure, qqplot = TRUE)
 dev.off()
 #result.complete.mardia <- mardiaTest(samples.complete, qqplot = TRUE) # For comparison
 
 ## Henze-Zirkler's MVN test
-pdf("qqplotHz.pdf")
+pdf(paste("qqplotHz_", N, ".pdf", sep = ""))
 result.failure.hz <- hzTest(samples.failure, qqplot = TRUE)
 dev.off()
 #result.complete.hz <- hzTest(samples.complete, qqplot = TRUE)  # For comparison
 
 ## Royston's MVN test
 if (n.success >= 2000 && n.failure >= 2000) {
-    pdf("qqplotRoyston.pdf")
+    pdf(paste("qqplotRoyston_", N, ".pdf"))
     result.failure.royston <- roystonTest(samples.failure[1:2000,], qqplot = TRUE)
     dev.off()
     #result.complete.royston <- roystonTest(samples.complete[1:2000, ], qqplot = TRUE)  # For comparison
