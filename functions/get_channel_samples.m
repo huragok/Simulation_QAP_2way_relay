@@ -1,4 +1,4 @@
-function [h_success, g_success, h_failure, g_failure] = get_channel_samples(N, constellation, map, beta_sr, beta_rd, Pr, P1, P2, sigma_sqr_d, sigma_sqr_r, max_frame, iter_max, coding_rate, nldpc, seed)
+function [h_success, g_success, h_failure, g_failure] = get_channel_samples(N, constellation, map, beta_sr, beta_rd, Pr, P1, P2, sigma_sqr_d, sigma_sqr_r, max_frame, iter_max, coding_rate, nldpc, seed, n_df)
 %   [h_success, g_success, h_failure, g_failure] = get_channel_samples(constellation, map, beta_sr, beta_rd, Pr, P1, P2, sigma_sqr_d, sigma_sqr_r, max_frame, iter_max, coding_rate, nldpc, seed)
 %   Generate the samples of channels corresponding to the successful packet
 %   transmissions and the failed packet transmissions.
@@ -29,6 +29,10 @@ function [h_success, g_success, h_failure, g_failure] = get_channel_samples(N, c
 %       nldpc:          Scalar, bit length after channel coding, 
 %                       mod(nldpc,24)=0.
 %       seed:           Scalar, seed for the random number generator
+%       n_df:           Scalar, degree of freedom, i.e. the number of
+%                       independent fading channel values corresponding to
+%                       each transport block. Must be able to divide nldpc
+%                       / Q
 %	Outputs:
 %		h_success:      n_success-by-N matrix, the realization of h_1
 %                       corresponding to the successful transmissions
@@ -98,10 +102,14 @@ for i = 1 : max_frame
 	y = zeros(N, numSymbol); % The received signal at each (re)transmission
     % Generate the channels. Assume channel to be independently fading
     % across symbols
-    h_sr = sqrt(beta_sr / 2) * (randn(N, numSymbol) + 1i * randn(N, numSymbol)); % Generate the Rayleigh channel, We expect N to be large so inorder to cut memory usage we generate the random channel/noise once for each transmission
-    h_rd = sqrt(beta_rd / 2) * (randn(N, numSymbol) + 1i * randn(N, numSymbol));
-    g = sqrt(Pr ./ (abs(h_sr) .^ 2 * P1 + abs(h_rd) .^ 2 * P2 + sigma_sqr_r)); % The power normalization factor
+    h_sr_unique = sqrt(beta_sr / 2) * (randn(N, n_df) + 1i * randn(N, n_df)); % Generate the Rayleigh channel, We expect N to be large so inorder to cut memory usage we generate the random channel/noise once for each transmission
+    h_rd_unique = sqrt(beta_rd / 2) * (randn(N, n_df) + 1i * randn(N, n_df));
+    g_unique = sqrt(Pr ./ (abs(h_sr_unique) .^ 2 * P1 + abs(h_rd_unique) .^ 2 * P2 + sigma_sqr_r)); % The power normalization factor
     
+    n_rep = numSymbol / n_df;
+    h_sr = repmat(h_sr_unique, 1, n_rep);
+    h_rd = repmat(h_rd_unique, 1, n_rep);
+    g = repmat(g_unique, 1, n_rep);
     chnl_eq = zeros(N, numSymbol); % The equivalent channel at each (re)transmission
     for m = 1 : N 	
 		% Received signal and equivalent channel generation
@@ -135,11 +143,11 @@ for i = 1 : max_frame
     % Detection of the current frame is successful, compute the
     % effective thourhput
     if error_all == 0
-        h_success = [h_success; h_sr.'];
-        g_success = [g_success; h_rd.'];
+        h_success = [h_success; h_sr_unique.'];
+        g_success = [g_success; h_rd_unique.'];
     else
-        h_failure = [h_failure; h_sr.'];
-        g_failure = [g_failure; h_rd.'];
+        h_failure = [h_failure; h_sr_unique.'];
+        g_failure = [g_failure; h_rd_unique.'];
     end
     
 end
