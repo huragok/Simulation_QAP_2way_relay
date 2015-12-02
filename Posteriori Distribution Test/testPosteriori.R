@@ -2,40 +2,39 @@ library(MVN)
 library(XML)
 
 # Import the data
-data <- xmlParse("samples_4_BF.xml")
+data <- xmlParse("samples_1_10.xml")
 xml.data <- xmlToList(data)
 
 N <- as.numeric(xml.data$.attrs[["N"]])
 beta <- as.numeric(xml.data$.attrs[["beta"]])
 n.success <- as.numeric(xml.data$.attrs[["nSuccess"]])
 n.failure <- as.numeric(xml.data$.attrs[["nFailure"]])
+n.independent.channel <- as.numeric(xml.data$.attrs[["Nprb"]])
+
 samples.success <- matrix(unlist(lapply(xml.data$Success, function(entry) as.numeric(unlist(strsplit(entry, "\\s+"))))), ncol = 4 * N, byrow = TRUE)
 samples.failure <- matrix(unlist(lapply(xml.data$Failure, function(entry) as.numeric(unlist(strsplit(entry, "\\s+"))))), ncol = 4 * N, byrow = TRUE)
 samples.complete <- rbind(samples.success, samples.failure)
 
 # MVN Tests (Korkmaz, Selcuk, Dincer Goksuluk, and Gokmen Zararsiz. "MVN: An R Package for Assessing Multivariate Normality." A peer-reviewed, open-access publication of the R Foundation for Statistical Computing (2014): 151.)
 ## Mardia's test
-pdf(paste("qqplotMardia_", N, "_BF.pdf", sep = ""))
+pdf(paste("qqplot/qqplotMardia_", N, "_", n.independent.channel, ".pdf", sep = ""))
 result.failure.mardia <- mardiaTest(samples.failure, qqplot = TRUE)
 dev.off()
 #result.complete.mardia <- mardiaTest(samples.complete, qqplot = TRUE) # For comparison
 
 ## Henze-Zirkler's MVN test
-pdf(paste("qqplotHz_", N, "_BF.pdf", sep = ""))
+pdf(paste("qqplot/qqplotHz_", N, "_", n.independent.channel, ".pdf", sep = ""))
 result.failure.hz <- hzTest(samples.failure, qqplot = TRUE)
 dev.off()
 #result.complete.hz <- hzTest(samples.complete, qqplot = TRUE)  # For comparison
 
 ## Royston's MVN test
 if (n.success >= 2000 && n.failure >= 2000) {
-    pdf(paste("qqplotRoyston_", N, "_BF.pdf"))
+    pdf(paste("qqplot/qqplotRoyston_", N, "_", n.independent.channel,".pdf", sep = ""))
     result.failure.royston <- roystonTest(samples.failure[1:2000,], qqplot = TRUE)
     dev.off()
     #result.complete.royston <- roystonTest(samples.complete[1:2000, ], qqplot = TRUE)  # For comparison
 }
-pdf(paste("qqplotRoyston_", N, "_BF.pdf"))
-result.failure.royston <- roystonTest(samples.failure, qqplot = TRUE)
-dev.off()
 
 # Log-likelihood test on the parameters based on Wilks's theorem
 paramTest <- function(data, meanTarget, covTarget, sl = 0.05) {
@@ -53,6 +52,8 @@ paramTest <- function(data, meanTarget, covTarget, sl = 0.05) {
     result$p.value <- 1 - pchisq(W, p * (p + 1) / 2 + p)
     if (result$p.value < sl) result$Result <- "Mean and covariance of the samples do not match the target." # Reject
     else result$Result <- "Mean and covariance of the samples match the target." # Accept
+    result$mean.ML <- mu
+    result$cov.ML <- Sigma
     
     return (result)
 }
@@ -62,11 +63,34 @@ covTarget <- beta / 2 * diag(4 * N)
 result.failure.param <- paramTest(samples.failure, meanTarget, covTarget)
 #result.complete.param <- paramTest(samples.complete, meanTarget, covTarget)
 
+# Test whether the posteriori channel is a scaled version of the prior distribution using Wilks's theorem
+paramScaledTest <- function(data, sl = 0.05) {
+    n <- nrow(data)
+    p <- ncol(data)
+    
+    Sigma <- cov(data) * (n - 1) / n # ML estimation of the covariance
+    
+    W <- -n * log(det(Sigma)) + n * p * log(sum(data * data) / n / p) # The test statistic -2 * log(Lambda) 
+    
+    result <- list();
+    result$name <- "Log-likelihood scaled Gaussian test"
+    result$p.value <- 1 - pchisq(W, p * (p + 1) / 2 + p - 1)
+    if (result$p.value > sl) result$Result <- "Means are 0 and covariance is a scaled identity matrix." # Reject
+    else result$Result <- "Means are not 0 or covariance is not a scaled identity matrix." # Accept
+    result$beta.ML <- 2 * sum(data * data) / n / p;
+    
+    return (result)
+}
+result.failure.paramScaled <- paramScaledTest(samples.failure)
+#result.complete.paramScaled <- paramScaledTest(samples.complete, meanTarget, covTarget)
+
 # Output
-cat("N =", N, ", n.failure =", n.failure, ", n.success =", n.success, ", beta =", beta, "\n")
+cat("N =", N, "n.independent.channel =", n.independent.channel, ", n.failure =", n.failure, ", n.success =", n.success, ", beta =", beta, "\n")
 print("MVN distribution tests ********************************************")
 print(result.failure.mardia)
 print(result.failure.hz)
 print(result.failure.royston)
 print("Parameter tests ***************************************************")
 print(result.failure.param)
+print("Parameter scaled tests ********************************************")
+print(result.failure.paramScaled)
