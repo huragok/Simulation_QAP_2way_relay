@@ -2,7 +2,7 @@ library(MVN)
 library(XML)
 
 # Import the data
-data <- xmlParse("samples_1_10.xml")
+data <- xmlParse("samples_4_1.xml")
 xml.data <- xmlToList(data)
 
 N <- as.numeric(xml.data$.attrs[["N"]])
@@ -69,15 +69,18 @@ paramScaledTest <- function(data, sl = 0.05) {
     p <- ncol(data)
     
     Sigma <- cov(data) * (n - 1) / n # ML estimation of the covariance
+    a.h <- 2 * sum(data[,1:(p/2)] * data[,1:(p/2)]) / n / p
+    a.g <- 2 * sum(data[,(p/2+1):p] * data[,(p/2+1):p]) / n / p
     
-    W <- -n * log(det(Sigma)) + n * p * log(sum(data * data) / n / p) # The test statistic -2 * log(Lambda) 
+    W <- -n * log(det(Sigma)) + n * p / 2 * (log(a.h) + log(a.g)) # The test statistic -2 * log(Lambda) 
     
     result <- list();
     result$name <- "Log-likelihood scaled Gaussian test"
-    result$p.value <- 1 - pchisq(W, p * (p + 1) / 2 + p - 1)
+    result$p.value <- 1 - pchisq(W, p * (p + 1) / 2 + p - 2)
     if (result$p.value > sl) result$Result <- "Means are 0 and covariance is a scaled identity matrix." # Reject
     else result$Result <- "Means are not 0 or covariance is not a scaled identity matrix." # Accept
-    result$beta.ML <- 2 * sum(data * data) / n / p;
+    result$beta.h.ML <- 2 * a.h
+    result$beta.g.ML <- 2 * a.g
     
     return (result)
 }
