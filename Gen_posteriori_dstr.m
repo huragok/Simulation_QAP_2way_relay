@@ -9,25 +9,25 @@ addpath('functions');
 load('./data/Test_201573023658.mat');
 % Non-block fading
 % n_df = 2400 / 6;
-% dB_inv_sigma2 = -0.2; % 13.5, 5.8, 2, -0.2
+% dB_inv_sigma2 = -0.25; % 13.4, 5.9, 1.9, -0.25
 % N = 4; % 1, 2, 3, 4
 % max_frame = 50;
 
 % pure block fading
 n_df = 1;
-dB_inv_sigma2 = -0.7; % 12.5, 5, 1.5, -0.7
+dB_inv_sigma2 = -0.6; % 12.6, 5, 1.5, -0.7
 N = 4; % 1, 2, 3, 4
 max_frame = 20000;
 
 % 100 RB
 % n_df = 100;
-% dB_inv_sigma2 = -0.2; % 13.5, 5.8, 2, -0.2
+% dB_inv_sigma2 = -0.25; % 13.5, 5.9, 1.9, -0.25
 % N = 4; % 1, 2, 3, 4
 % max_frame = 200;
 
 % 10 RB
 % n_df = 10;
-% dB_inv_sigma2 = -0.2; % 13.3, 5.7, 1.9, -0.2
+% dB_inv_sigma2 = -0.25; % 13.3, 5.7, 1.9, -0.25
 % N = 4; % 1, 2, 3, 4
 % max_frame = 2000;
 
@@ -59,52 +59,72 @@ map  = [1 : Q; test_cases(1).map];
 sigma2 = 10 .^ (-dB_inv_sigma2 / 10); % The noise covariance at all nodes
 
 %% 3. Generate the channel samples corresponding to the successful transmission and the failed transmissions
-[h_success, g_success, h_failure, g_failure] = get_channel_samples(N, constellation, map, beta_sr, beta_rd, Pr, Pt, Pt, sigma2, sigma2, max_frame, iter_max, coding_rate, nldpc, seed, n_df);
+[h_success, g_success, vr_success, vd_success, h_failure, g_failure, vr_failure, vd_failure] = get_channel_noise_samples(N, constellation, map, beta_sr, beta_rd, Pr, Pt, Pt, sigma2, sigma2, max_frame, iter_max, coding_rate, nldpc, seed, n_df);
 
 %% 4. Visualization, plot the mean and covaraince matrix
-points_success = [abs(h_success), abs(g_success)];
-points_failure = [abs(h_failure), abs(g_failure)];
+points_success_channel = [real(h_success), imag(h_success), real(g_success), imag(g_success)];
+points_failure_channel = [real(h_failure), imag(h_failure), real(g_failure), imag(g_failure)];
 
-% The mean plot
-mean_success = mean(points_success);
-mean_failure = mean(points_failure);
-figure;
-plot(1 : 2 * N, mean_success, 'bo-', 'linewidth', 2), hold on;
-plot(1 : 2 * N, mean_failure, 'r+--', 'linewidth', 2);
-grid on;
-set(gca, 'Fontsize', 18);
-set(gca, 'XTick', 1 : 2 * N);
-xlabel('[|h(1 : N)|, |g(1, N)|]'), ylabel('mean');
-ylim([0, ceil(max(max(mean_success), max(mean_failure)))]);
-legend('Success', 'Failure');
+points_success_noise = [real(vr_success), imag(vr_success), real(vd_success), imag(vd_success)];
+points_failure_noise = [real(vr_failure), imag(vr_failure), real(vd_failure), imag(vd_failure)];
 
-% The covariance plot
+% The covariance plot of the channel samples
 colormap('hot');
 
-cov_success = cov(points_success);
-cov_failure = cov(points_failure);
+cov_success_channel = cov(points_success_channel);
+cov_failure_channel = cov(points_failure_channel);
 
 figure;
-imagesc(cov_success);
+imagesc(cov_success_channel);
 axis equal;
-xlabel('[|h(1 : N)|, |g(1, N)|]'), ylabel('[|h(1 : N)|, |g(1, N)|]');
-xlim([0.5, 2 * N + 0.5]), ylim([0.5, 2 * N + 0.5]);
-set(gca, 'XTick', 1 : 2 * N);
-set(gca, 'YTick', 1 : 2 * N);
+xlabel('[real(h(1 : N)), imag(h(1 : N)), real(g(1 : N)), imag(g(1 : N))]');
+ylabel('[real(h(1 : N)), imag(h(1 : N)), real(g(1 : N)), imag(g(1 : N))]');
+xlim([0.5, 4 * N + 0.5]), ylim([0.5, 4 * N + 0.5]);
+set(gca, 'XTick', 1 : 4 * N);
+set(gca, 'YTick', 1 : 4 * N);
 set(gca, 'Fontsize', 18);
 colorbar;
-caxis([0, max(max(max(cov_success)), max(max(cov_failure)))]);
+caxis([0, max(max(max(cov_success_channel)), max(max(cov_failure_channel)))]);
 
 figure;
-imagesc(cov_failure);
+imagesc(cov_failure_channel);
 axis equal;
-xlabel('[|h(1 : N)|, |g(1, N)|]'), ylabel('[|h(1 : N)|, |g(1, N)|]');
-xlim([0.5, 2 * N + 0.5]), ylim([0.5, 2 * N + 0.5]);
-set(gca, 'XTick', 1 : 2 * N);
-set(gca, 'YTick', 1 : 2 * N);
+xlabel('[real(h(1 : N)), imag(h(1 : N)), real(g(1 : N)), imag(g(1 : N))]');
+ylabel('[real(h(1 : N)), imag(h(1 : N)), real(g(1 : N)), imag(g(1 : N))]');
+xlim([0.5, 4 * N + 0.5]), ylim([0.5, 4 * N + 0.5]);
+set(gca, 'XTick', 1 : 4 * N);
+set(gca, 'YTick', 1 : 4 * N);
 set(gca, 'Fontsize', 18);
 colorbar;
-caxis([0, max(max(max(cov_failure)), max(max(cov_failure)))]);
+caxis([0, max(max(max(cov_failure_channel)), max(max(cov_failure_channel)))]);
+
+% The covariance plot of the noise samples
+cov_success_noise = cov(points_success_noise);
+cov_failure_noise = cov(points_failure_noise);
+
+figure;
+imagesc(cov_success_noise);
+axis equal;
+xlabel('[real(n_R(1 : N)), imag(n_R(1 : N)), real(n_2(1 : N)), imag(n_2(1 : N))]');
+ylabel('[real(n_R(1 : N)), imag(n_R(1 : N)), real(n_2(1 : N)), imag(n_2(1 : N))]');
+xlim([0.5, 4 * N + 0.5]), ylim([0.5, 4 * N + 0.5]);
+set(gca, 'XTick', 1 : 4 * N);
+set(gca, 'YTick', 1 : 4 * N);
+set(gca, 'Fontsize', 18);
+colorbar;
+caxis([0, max(max(max(cov_success_noise)), max(max(cov_failure_noise)))]);
+
+figure;
+imagesc(cov_failure_noise);
+axis equal;
+xlabel('[real(n_R(1 : N)), imag(n_R(1 : N)), real(n_2(1 : N)), imag(n_2(1 : N))]');
+ylabel('[real(n_R(1 : N)), imag(n_R(1 : N)), real(n_2(1 : N)), imag(n_2(1 : N))]');
+xlim([0.5, 4 * N + 0.5]), ylim([0.5, 4 * N + 0.5]);
+set(gca, 'XTick', 1 : 4 * N);
+set(gca, 'YTick', 1 : 4 * N);
+set(gca, 'Fontsize', 18);
+colorbar;
+caxis([0, max(max(max(cov_failure_noise)), max(max(cov_failure_noise)))]);
 
 %% 5. Output the result to a xml file used for normality test, each row corresponds to 1 observation in the order of real(h(1)), imag(h(1)), ...real(h(N)), imag(h(N)), real(g(1)), imag(g(1)), ...real(g(N)), imag(g(N)) separated by comma
 doc = com.mathworks.xml.XMLUtils.createDocument('ChannelSamples');
@@ -115,12 +135,20 @@ channel_samples.setAttribute('nFailure', num2str(size(h_failure, 1)));
 channel_samples.setAttribute('beta', num2str(beta_sr));
 channel_samples.setAttribute('N', num2str(N));
 channel_samples.setAttribute('Nprb', num2str(n_df));
+channel_samples.setAttribute('sigma2', num2str(sigma2));
 
 % The success part
 success = doc.createElement('Success');
 for i_success = 1 : size(h_success, 1)
     entry = doc.createElement('Entry');
-    entry.appendChild(doc.createTextNode(num2str([real(h_success(i_success, :)), imag(h_success(i_success, :)), real(g_success(i_success, :)), imag(g_success(i_success, :))], '%-f ')));
+    entry.appendChild(doc.createTextNode(num2str([real(h_success(i_success, :)),...
+                                                  imag(h_success(i_success, :)),...
+                                                  real(g_success(i_success, :)),...
+                                                  imag(g_success(i_success, :)),...
+                                                  real(vr_success(i_success, :)),...
+                                                  imag(vr_success(i_success, :)),...
+                                                  real(vd_success(i_success, :)),...
+                                                  imag(vd_success(i_success, :))], '%-f ')));
     success.appendChild(entry);
 end
 channel_samples.appendChild(success);
@@ -129,22 +157,16 @@ channel_samples.appendChild(success);
 failure = doc.createElement('Failure');
 for i_failure = 1 : size(h_failure, 1)
     entry = doc.createElement('Entry');
-    entry.appendChild(doc.createTextNode(num2str([real(h_failure(i_failure, :)), imag(h_failure(i_failure, :)), real(g_failure(i_failure, :)), imag(g_failure(i_failure, :))], '%-f ')));
+    entry.appendChild(doc.createTextNode(num2str([real(h_failure(i_failure, :)),...
+                                                  imag(h_failure(i_failure, :)),...
+                                                  real(g_failure(i_failure, :)),...
+                                                  imag(g_failure(i_failure, :)),...
+                                                  real(vr_failure(i_failure, :)),...
+                                                  imag(vr_failure(i_failure, :)),...
+                                                  real(vd_failure(i_failure, :)),...
+                                                  imag(vd_failure(i_failure, :))], '%-f ')));
     failure.appendChild(entry);
 end
 channel_samples.appendChild(failure);
 
 xmlwrite(['samples_', num2str(N), '_', num2str(n_df), '.xml'], doc);
-
-%% 6. In the low dimensional case, a 2-D cluster visualization
-if 0
-%if N == 1
-    figure;
-    scatter(points_success(:, 1), points_success(:, 2), 'r^'), hold on;
-    scatter(points_failure(:, 1), points_failure(:, 2), 'bo');
-    grid on;
-    axis equal;
-    set(gca, 'Fontsize', 18);
-    xlabel('|h|'), ylabel('|g|');
-    legend({'Success', 'Failure'}, 'Location', 'northeast');
-end

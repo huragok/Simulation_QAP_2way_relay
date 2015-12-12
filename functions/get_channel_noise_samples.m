@@ -1,7 +1,7 @@
-function [h_success, g_success, h_failure, g_failure] = get_channel_samples(N, constellation, map, beta_sr, beta_rd, Pr, P1, P2, sigma_sqr_d, sigma_sqr_r, max_frame, iter_max, coding_rate, nldpc, seed, n_df)
-%   [h_success, g_success, h_failure, g_failure] = get_channel_samples(constellation, map, beta_sr, beta_rd, Pr, P1, P2, sigma_sqr_d, sigma_sqr_r, max_frame, iter_max, coding_rate, nldpc, seed)
-%   Generate the samples of channels corresponding to the successful packet
-%   transmissions and the failed packet transmissions.
+function [h_success, g_success, vr_success, vd_success, h_failure, g_failure, vr_failure, vd_failure] = get_channel_noise_samples(N, constellation, map, beta_sr, beta_rd, Pr, P1, P2, sigma_sqr_d, sigma_sqr_r, max_frame, iter_max, coding_rate, nldpc, seed, n_df)
+%   [h_success, g_success, vr_success, vd_success, h_failure, g_failure, vr_failure, vd_failure] = get_channel_noise_samples(constellation, map, beta_sr, beta_rd, Pr, P1, P2, sigma_sqr_d, sigma_sqr_r, max_frame, iter_max, coding_rate, nldpc, seed)
+%   Generate the samples of channels and noises corresponding to the
+%   successful packet transmissions and the failed packet transmissions.
 % _________________________________________________________________________
 %	Inputs:
 %       N:              scalar, the number of transmissions when we
@@ -38,9 +38,17 @@ function [h_success, g_success, h_failure, g_failure] = get_channel_samples(N, c
 %                       corresponding to the successful transmissions
 %       g_success:      n_success-by-N matrix, the realization of g_2
 %                       corresponding to the successful transmissions
+%       vr_success:     n_success-by-N matrix, the realization of n_R
+%                       corresponding to the successful transmissions
+%       vd_success:     n_success-by-N matrix, the realization of n_2
+%                       corresponding to the successful transmissions
 %       h_failure:      n_failure-by-(N matrix, the realization of h_1
 %                       corresponding to the failed transmissions
 %       g_failure:      n_failure-by-N matrix, the realization of g_2
+%                       corresponding to the failed transmissions
+%       vr_failure:     n_success-by-N matrix, the realization of n_R
+%                       corresponding to the failed transmissions
+%       vd_failure:     n_success-by-N matrix, the realization of n_2
 %                       corresponding to the failed transmissions
 % _________________________________________________________________________
 % Author: Wenhao Wu
@@ -75,8 +83,12 @@ end
 % Start the transmission frame by frame
 h_success = zeros(0, N);
 g_success = zeros(0, N);
+vr_success = zeros(0, N);
+vd_success = zeros(0, N);
 h_failure = zeros(0, N);
 g_failure = zeros(0, N);
+vr_failure = zeros(0, N);
+vd_failure = zeros(0, N);
 
 for i = 1 : max_frame
 	if mod(i, 5)==0 % Print a 'x' for every 5 frames
@@ -105,6 +117,8 @@ for i = 1 : max_frame
     h_sr_unique = sqrt(beta_sr / 2) * (randn(N, n_df) + 1i * randn(N, n_df)); % Generate the Rayleigh channel, We expect N to be large so inorder to cut memory usage we generate the random channel/noise once for each transmission
     h_rd_unique = sqrt(beta_rd / 2) * (randn(N, n_df) + 1i * randn(N, n_df));
     g_unique = sqrt(Pr ./ (abs(h_sr_unique) .^ 2 * P1 + abs(h_rd_unique) .^ 2 * P2 + sigma_sqr_r)); % The power normalization factor
+    v_r = sqrt(sigma_sqr_r / 2) * (randn(N, numSymbol) + 1i * randn(N, numSymbol)); % Noise samples at the relay
+    v_d = sqrt(sigma_sqr_d / 2) * (randn(N, numSymbol) + 1i * randn(N, numSymbol)); % Noise samples at the destination
     
     n_rep = numSymbol / n_df;
     h_sr = repmat(h_sr_unique, 1, n_rep);
@@ -113,7 +127,7 @@ for i = 1 : max_frame
     chnl_eq = zeros(N, numSymbol); % The equivalent channel at each (re)transmission
     for m = 1 : N 	
 		% Received signal and equivalent channel generation
-        y(m, :) = g(m, :) .* h_rd(m, :) .* (h_sr(m, :) .* transmit_Mod(m, :) + sqrt(sigma_sqr_r / 2) * (randn(1, numSymbol) + 1i * randn(1, numSymbol))) + sqrt(sigma_sqr_d / 2) * (randn(1, numSymbol) + 1i * randn(1, numSymbol));
+        y(m, :) = g(m, :) .* h_rd(m, :) .* (h_sr(m, :) .* transmit_Mod(m, :) + v_r(m, :)) + v_d(m, :);
         
 		cov = abs(g(m, :) .* h_rd(m, :)) .^ 2 * sigma_sqr_r + sigma_sqr_d;
 		y(m, :) = cov .^ (-1/2) .* y(m, :);
@@ -145,9 +159,36 @@ for i = 1 : max_frame
     if error_all == 0
         h_success = [h_success; h_sr_unique.'];
         g_success = [g_success; h_rd_unique.'];
+        
+        % Randomly samples the noise samples (must correspond to the value)
+        idx = randi(n_rep, N, n_df) - 1;
+        vr_success_frame = zeros(n_df, N);
+        vd_success_frame = zeros(n_df, N);
+        for m = 1 : N
+            for i_df = 1 : n_df
+                vr_success_frame(i_df, m) = v_r(m, i_df + n_df * idx(m, i_df));
+                vd_success_frame(i_df, m) = v_d(m, i_df + n_df * idx(m, i_df));
+            end
+        end
+
+        vr_success = [vr_success; vr_success_frame];
+        vd_success = [vd_success; vd_success_frame];
     else
         h_failure = [h_failure; h_sr_unique.'];
         g_failure = [g_failure; h_rd_unique.'];
+        
+        idx = randi(n_rep, N, n_df) - 1;
+        vr_failure_frame = zeros(n_df, N);
+        vd_failure_frame = zeros(n_df, N);
+        for m = 1 : N
+            for i_df = 1 : n_df
+                vr_failure_frame(i_df, m) = v_r(m, i_df + n_df * idx(m, i_df));
+                vd_failure_frame(i_df, m) = v_d(m, i_df + n_df * idx(m, i_df));
+            end
+        end
+
+        vr_failure = [vr_failure; vr_failure_frame];
+        vd_failure = [vd_failure; vd_failure_frame];
     end
     
 end
