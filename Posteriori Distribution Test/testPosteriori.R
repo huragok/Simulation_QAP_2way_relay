@@ -10,10 +10,11 @@ beta <- as.numeric(xml.data$.attrs[["beta"]])
 n.success <- as.numeric(xml.data$.attrs[["nSuccess"]])
 n.failure <- as.numeric(xml.data$.attrs[["nFailure"]])
 n.independent.channel <- as.numeric(xml.data$.attrs[["Nprb"]])
+sigma2 <- as.numeric(xml.data$.attrs[["sigma2"]])
 
-samples.success <- matrix(unlist(lapply(xml.data$Success, function(entry) as.numeric(unlist(strsplit(entry, "\\s+"))))), ncol = 4 * N, byrow = TRUE)
-samples.failure <- matrix(unlist(lapply(xml.data$Failure, function(entry) as.numeric(unlist(strsplit(entry, "\\s+"))))), ncol = 4 * N, byrow = TRUE)
-samples.complete <- rbind(samples.success, samples.failure)
+samples.success <- matrix(unlist(lapply(xml.data$Success, function(entry) as.numeric(unlist(strsplit(entry, "\\s+"))))), ncol = 8 * N, byrow = TRUE)
+samples.failure <- matrix(unlist(lapply(xml.data$Failure, function(entry) as.numeric(unlist(strsplit(entry, "\\s+"))))), ncol = 8 * N, byrow = TRUE)
+#samples.complete <- rbind(samples.success, samples.failure)
 
 # MVN Tests (Korkmaz, Selcuk, Dincer Goksuluk, and Gokmen Zararsiz. "MVN: An R Package for Assessing Multivariate Normality." A peer-reviewed, open-access publication of the R Foundation for Statistical Computing (2014): 151.)
 ## Mardia's test
@@ -58,8 +59,8 @@ paramTest <- function(data, meanTarget, covTarget, sl = 0.05) {
     return (result)
 }
 
-meanTarget <- -rep(0, 4 * N)
-covTarget <- beta / 2 * diag(4 * N)
+meanTarget <- rep(0, 8 * N)
+covTarget <-  diag(c(rep(beta / 2, times = 4 * N), rep(sigma2 / 2, times = 4 * N)))
 result.failure.param <- paramTest(samples.failure, meanTarget, covTarget)
 #result.complete.param <- paramTest(samples.complete, meanTarget, covTarget)
 
@@ -69,18 +70,22 @@ paramScaledTest <- function(data, sl = 0.05) {
     p <- ncol(data)
     
     Sigma <- cov(data) * (n - 1) / n # ML estimation of the covariance
-    a.h <- 2 * sum(data[,1:(p/2)] * data[,1:(p/2)]) / n / p
-    a.g <- 2 * sum(data[,(p/2+1):p] * data[,(p/2+1):p]) / n / p
+    a.h <- 4 * sum(data[,1:(p/4)] * data[,1:(p/4)]) / n / p
+    a.g <- 4 * sum(data[,(p/4+1):(p/2)] * data[,(p/4+1):(p/2)]) / n / p
+    a.R <- 4 * sum(data[,(p/2+1):(3*p/4)] * data[,(p/2+1):(3*p/4)]) / n / p
+    a.D <- 4 * sum(data[,(3*p/4+1):p] * data[,(3*p/4+1):p]) / n / p
     
-    W <- -n * log(det(Sigma)) + n * p / 2 * (log(a.h) + log(a.g)) # The test statistic -2 * log(Lambda) 
+    W <- -n * log(det(Sigma)) + n * p / 4 * (log(a.h) + log(a.g) + log(a.R) + log(a.D)) # The test statistic -2 * log(Lambda) 
     
     result <- list();
     result$name <- "Log-likelihood scaled Gaussian test"
-    result$p.value <- 1 - pchisq(W, p * (p + 1) / 2 + p - 2)
+    result$p.value <- 1 - pchisq(W, p * (p + 1) / 2 + p - 4)
     if (result$p.value > sl) result$Result <- "Means are 0 and covariance is a scaled identity matrix." # Reject
     else result$Result <- "Means are not 0 or covariance is not a scaled identity matrix." # Accept
     result$beta.h.ML <- 2 * a.h
     result$beta.g.ML <- 2 * a.g
+    result$sigma2.n.R.ML <- 2 * a.R
+    result$sigma2.n.D.ML <- 2 * a.D
     
     return (result)
 }
@@ -88,7 +93,7 @@ result.failure.paramScaled <- paramScaledTest(samples.failure)
 #result.complete.paramScaled <- paramScaledTest(samples.complete, meanTarget, covTarget)
 
 # Output
-cat("N =", N, "n.independent.channel =", n.independent.channel, ", n.failure =", n.failure, ", n.success =", n.success, ", beta =", beta, "\n")
+cat("N =", N, "n.independent.channel =", n.independent.channel, ", n.failure =", n.failure, ", n.success =", n.success, ", beta =", beta, ", sigma2 =", sigma2, "\n")
 print("MVN distribution tests ********************************************")
 print(result.failure.mardia)
 print(result.failure.hz)
