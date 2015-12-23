@@ -20,12 +20,12 @@ type_mod = 'QAM';
 % We also assume that the channel and noise are stationary across
 % transmissions
 
-dB_inv_sigma2 = [6 : 2 : 20]; % 1/sigma2 in dB
+dB_inv_sigma2 = [-3: 2.5 : 7]; % 1/sigma2 in dB
 p_Pr = 0.5; % this portion of the total power of 4 is allocated to the relay. The rest are divided eqaully between the 2 end nodes
-d = [6, 7] .^ (-1 / 3); % Distance between S and R, R and D
+d = [0.5, 0.5]; % Distance between S and R, R and D
 
 nu = 3; % Pathloss factor
-M = 3; % Number of retransmission
+M = 5; % Number of retransmission
 
 epsilon = 0.01; % Tolerance to control the error of scaling the 2 cost matrices to integer
 n_itr = 1000000; % Number of iterations for the tabu QAP solver
