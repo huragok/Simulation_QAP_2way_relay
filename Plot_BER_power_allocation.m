@@ -5,9 +5,10 @@ clc;
 addpath('./functions');
 
 %% 0. Load the data file that contains the test result
-load('./data/Test_20155152021681.MAT') % 16QAM
+% load('./data/Test_20155152021681.MAT') % 16QAM
 %load('./data/Test_2015515202851055.mat') % 32QAM
-%load('./data/Test_2015515203548283.mat') % 64QAM
+% load('./Test_20151223152950249.mat') % 64QAM, M = 3, 4
+load('./Test_201512231652109.mat') % 64QAM, M = 1, 2
 
 %% 1. Simulation settings
 N_batch = 1; % Number of batches,
@@ -44,7 +45,7 @@ beta_rd = d2 .^ -nu;
 g = sqrt(Pr ./ (beta_sr * Pt + beta_rd * Pt + sigma_sqr_r)); % The power normalization factor
 
 map_noncore = get_map_noncore(Q, M);
-map_seddik = get_map_seddik(Q, M);
+map_core = get_map_core(Q, M);
 map_QAP = cell(n_p_Pr, 1);
 for i_p_Pr = 1 : n_p_Pr
     map_QAP{i_p_Pr} = [1 : Q; test_cases(i_p_Pr).map];
@@ -60,22 +61,22 @@ for i_p_Pr = 1 : n_p_Pr
     % Compute the bit error rate using our analytical upper bound
     BER_analytical{i_p_Pr} = zeros(M, 3);
     BER_analytical{i_p_Pr}(:, 1) = get_BER_upper_bound(sqrt(Pt(i_p_Pr)) * constellation, map_noncore, beta_sr, beta_rd, g(i_p_Pr), sigma_sqr_d, sigma_sqr_r);
-    BER_analytical{i_p_Pr}(:, 2) = get_BER_upper_bound(sqrt(Pt(i_p_Pr)) * constellation, map_seddik, beta_sr, beta_rd, g(i_p_Pr), sigma_sqr_d, sigma_sqr_r);
+    BER_analytical{i_p_Pr}(:, 2) = get_BER_upper_bound(sqrt(Pt(i_p_Pr)) * constellation, map_core, beta_sr, beta_rd, g(i_p_Pr), sigma_sqr_d, sigma_sqr_r);
     BER_analytical{i_p_Pr}(:, 3) = get_BER_upper_bound(sqrt(Pt(i_p_Pr)) * constellation, map_QAP{i_p_Pr}, beta_sr, beta_rd, g(i_p_Pr), sigma_sqr_d, sigma_sqr_r);
     
     % Compute the bit error rate using Monte-Carlo simulation
     BER_MC{i_p_Pr} = zeros(M, 3);
     BER_MC{i_p_Pr}(:, 1) = get_BER(sqrt(Pt(i_p_Pr)) * constellation, map_noncore, beta_sr, beta_rd, Pr(i_p_Pr), Pt(i_p_Pr), Pt(i_p_Pr), sigma_sqr_d, sigma_sqr_r, N_per_batch, N_batch, seed);
-    BER_MC{i_p_Pr}(:, 2) = get_BER(sqrt(Pt(i_p_Pr)) * constellation, map_seddik, beta_sr, beta_rd, Pr(i_p_Pr), Pt(i_p_Pr), Pt(i_p_Pr), sigma_sqr_d, sigma_sqr_r, N_per_batch, N_batch, seed);
+    BER_MC{i_p_Pr}(:, 2) = get_BER(sqrt(Pt(i_p_Pr)) * constellation, map_core, beta_sr, beta_rd, Pr(i_p_Pr), Pt(i_p_Pr), Pt(i_p_Pr), sigma_sqr_d, sigma_sqr_r, N_per_batch, N_batch, seed);
     BER_MC{i_p_Pr}(:, 3) = get_BER(sqrt(Pt(i_p_Pr)) * constellation, map_QAP{i_p_Pr}, beta_sr, beta_rd, Pr(i_p_Pr), Pt(i_p_Pr), Pt(i_p_Pr), sigma_sqr_d, sigma_sqr_r, N_per_batch, N_batch, seed);
     
     toc;
     disp(['Power allocated to the relay = ', num2str(p_Pr(i_p_Pr)), ' completed.'])
     disp([' - BER upper bounds, non-CoRe: ', num2str(BER_analytical{i_p_Pr}(:, 1)')])
-    disp([' - BER upper bounds, Seddik: ', num2str(BER_analytical{i_p_Pr}(:, 2)')])
+    disp([' - BER upper bounds, CoRe: ', num2str(BER_analytical{i_p_Pr}(:, 2)')])
     disp([' - BER upper bounds, QAP: ', num2str(BER_analytical{i_p_Pr}(:, 3)')])
     disp([' - BER emperical, non-CoRe: ', num2str(BER_MC{i_p_Pr}(:, 1)')])
-    disp([' - BER emperical, Seddik: ', num2str(BER_MC{i_p_Pr}(:, 2)')])
+    disp([' - BER emperical, CoRe: ', num2str(BER_MC{i_p_Pr}(:, 2)')])
     disp([' - BER emperical, QAP: ', num2str(BER_MC{i_p_Pr}(:, 3)')])
 end
 
@@ -92,9 +93,9 @@ for m = 1 : M
     semilogy(p_Pr, BER_analytical(m, n_p_Pr + 1 : 2 * n_p_Pr), '^--', 'Color', cmap(m, :), 'linewidth', 2), hold on;
     semilogy(p_Pr, BER_analytical(m, 2 * n_p_Pr + 1 : 3 * n_p_Pr), 'o-.', 'Color', cmap(m, :), 'linewidth', 2), hold on;
 
-    legend_item{3 * m - 2} = ['Non-CoRe, M = ', num2str(m)];
-    legend_item{3 * m - 1} = ['Seddik, M = ', num2str(m)];
-    legend_item{3 * m} = ['MoDiv, M = ', num2str(m)];
+    legend_item{3 * m - 2} = ['NM', num2str(m)];
+    legend_item{3 * m - 1} = ['CR', num2str(m)];
+    legend_item{3 * m} = ['QAP', num2str(m)];
 end
 grid on;
 set(gca, 'Fontsize', 18);
@@ -109,9 +110,9 @@ for m = 1 : M
     semilogy(p_Pr, BER_MC(m, n_p_Pr + 1 : 2 * n_p_Pr), '^--', 'Color', cmap(m, :), 'linewidth', 2), hold on;
     semilogy(p_Pr, BER_MC(m, 2 * n_p_Pr + 1 : 3 * n_p_Pr), 'o-.', 'Color', cmap(m, :), 'linewidth', 2), hold on;
 
-    legend_item{3 * m - 2} = ['Non-CoRe, M = ', num2str(m)];
-    legend_item{3 * m - 1} = ['Seddik, M = ', num2str(m)];
-    legend_item{3 * m} = ['MoDiv, M = ', num2str(m)];
+    legend_item{3 * m - 2} = ['NM', num2str(m)];
+    legend_item{3 * m - 1} = ['CR', num2str(m)];
+    legend_item{3 * m} = ['QAP', num2str(m)];
 end
 grid on;
 set(gca, 'Fontsize', 18);
