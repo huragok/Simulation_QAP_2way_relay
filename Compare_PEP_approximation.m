@@ -7,7 +7,7 @@ addpath('./functions');
 
 %% 1. Simulation settings
 % Constellation specification
-Nbps = 4; % 4, 5, 6
+Nbps = 6; % 4, 5, 6
 type_mod = 'QAM';
 
 % Node S, R, D power, channel power and noise power specification
@@ -19,8 +19,8 @@ type_mod = 'QAM';
 % We also assume that the channel and noise are stationary across
 % transmissions
 
-%dB_inv_sigma2 = [1 : 1.5 : 13]; % 1/sigma2 in dB, 64 QAM
 dB_inv_sigma2 = [-2 : 1.5 : 10]; % 1/sigma2 in dB, 64 QAM
+% dB_inv_sigma2 = [-2 : 1.5 : 10]; % 1/sigma2 in dB, 16 QAM
 p_Pr = 0.5; % this portion of the total power of 4 is allocated to the relay. The rest are divided eqaully between the 2 end nodes
 d = [0.5, 0.5]; % Distance between S and R, R and D
 
@@ -32,12 +32,12 @@ N_per_batch = 1e6; % Number of monte-carlo run per batch, restricted by memory s
 seed = 8;
 
 % 64QAM
-% p0 = 0; q0 = 6;
-% p1 = 0; q1 = 48;
+p0 = 0; q0 = 6;
+p1 = 0; q1 = 48;
 
 % 16QAM
-p0 = 0; q0 = 3;
-p1 = 0; q1 = 15;
+% p0 = 0; q0 = 3;
+% p1 = 0; q1 = 15;
 
 %% 2. Initialization: generate and save all test cases
 Q = 2 ^ Nbps;
@@ -76,11 +76,11 @@ for i_batch = 1 : N_batch
         
         alpha_0 = sqrt(Pr ./ (delta1_0 * Pt + gamma2_0 * Pt + sigma_sqr(i_sigma2))); % The power normalization factor
         sigma_sqr_tilde_0 = sigma_sqr(i_sigma2) + sigma_sqr(i_sigma2) * alpha_0 .^ 2 .* gamma2_0; % The effective noise power at the destination
-        tmp0 = alpha_0 .^ 2 .* gamma2_0 .* delta1_0./ (sigma_sqr_tilde_0 .^ 2);
+        tmp0 = alpha_0 .^ 2 .* gamma2_0 .* delta1_0./ (sigma_sqr_tilde_0);
 
         alpha_1 = sqrt(Pr ./ (delta1_1 * Pt + gamma2_1 * Pt + sigma_sqr(i_sigma2))); % The power normalization factor
         sigma_sqr_tilde_1 = sigma_sqr(i_sigma2) + sigma_sqr(i_sigma2) * alpha_1 .^ 2 .* gamma2_1; % The effective noise power at the destination
-        tmp1 = alpha_1 .^ 2 .* gamma2_1 .* delta1_1./ (sigma_sqr_tilde_1 .^ 2);
+        tmp1 = alpha_1 .^ 2 .* gamma2_1 .* delta1_1./ (sigma_sqr_tilde_1);
         
         pep_num(i_sigma2) = pep_num(i_sigma2) + mean(qfunc(sqrt(dist_sqr0 * tmp0 / 2 + dist_sqr1 * tmp1 / 2)));
         pep_chernoff_num(i_sigma2) = pep_chernoff_num(i_sigma2) + 0.5 * mean(exp(-dist_sqr0 * tmp0 / 4)) * mean(exp(-dist_sqr1 * tmp1 / 4));
